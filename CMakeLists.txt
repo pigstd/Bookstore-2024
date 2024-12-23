@@ -3,7 +3,9 @@ project(test)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(test 
+add_compile_options(-Wall)
+
+add_executable(database 
     MemoryRiver.hpp
-    test_for_memoryriver.cpp
+    database.cpp
 )
