@@ -7,5 +7,7 @@ add_compile_options(-Wall)
 
 add_executable(code 
     src/MemoryRiver.hpp
-    database.cpp
+    src/myhash.hpp
+    src/database.hpp
+    test_database.cpp
 )

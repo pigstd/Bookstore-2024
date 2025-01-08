@@ -1,4 +1,4 @@
-#include "src/MemoryRiver.hpp"
+#include "MemoryRiver.hpp"
 #include <iostream>
 #include <assert.h>
 #include <functional>
@@ -8,30 +8,9 @@ using std::cerr;
 
 const int MAX_BLOCK = 700;
 
-class hash {
-private:
-    int hs1, hs2;
-    static int base1, base2, mod1, mod2;
-public:
-    hash(const string &s = "") {
-        hs1 = hs2 = 0;
-        for (auto c : s)
-            hs1 = (1ll * hs1 * base1 + (long long)(c) + 2ll) % mod1,
-            hs2 = (1ll * hs2 * base2 + (long long)(c) + 2ll) % mod2;
-    }
-    bool operator < (const hash &b) const {return hs1 < b.hs1 || (hs1 == b.hs1 && hs2 < b.hs2);};
-    bool operator == (const hash &b) const {return hs1 == b.hs1 && hs2 == b.hs2;};
-    void show() const {
-        cerr << hs1 << ' ' << hs2 << '\n';
-    }
-};
-int hash::base1 = 131;
-int hash::base2 = 137;
-int hash::mod1 = 1e9 + 7;
-int hash::mod2 = 998244353;
-
 template<typename indexname, typename valuename>
 //index 的类型， value 的类型
+//indexname 可比较（重载 < 和 ==）
 class block_list {
 
 class dataList;
@@ -234,39 +213,3 @@ public:
         file_head.write_info(head, 1);
     }
 };
-
-void print_value(const int &x) {
-    cout << x << ' ';
-}
-
-int main() {
-    block_list<hash, int> database("test");
-    int n; cin >> n;
-    while(n--) {
-        string s; cin >> s;
-        if (s == "insert") {
-            string s; int value;
-            cin >> s >> value;
-            database.insert(s, value);
-        }
-        else if (s == "delete") {
-            string s; int value;
-            cin >> s >> value;
-            database.del(s, value);
-        }
-        else if (s == "find") {
-            string s; cin >> s;
-            // std::vector<int> v = database.find_with_vector(s);
-            // if (v.size() == 0) cout << "null\n";
-            // else {
-            //     for (int x : v) cout << x << ' ';
-            //     cout << '\n';
-            // }
-            int cnt = database.find_with_opt(hash(s), print_value);
-            if (cnt == 0) cout << "null\n";
-            else cout << '\n';
-        }
-        else assert(0);
-    }
-    return 0;
-}
