@@ -1,4 +1,4 @@
-#include "MemoryRiver.hpp"
+#include "src/MemoryRiver.hpp"
 #include <iostream>
 #include <assert.h>
 using std::cin;
@@ -12,7 +12,7 @@ private:
     int hs1, hs2;
     static int base1, base2, mod1, mod2;
 public:
-    hash(const string &s) {
+    hash(const string &s = "") {
         hs1 = hs2 = 0;
         for (auto c : s)
             hs1 = (1ll * hs1 * base1 + (long long)(c) + 2ll) % mod1,
@@ -29,25 +29,31 @@ int hash::base2 = 137;
 int hash::mod1 = 1e9 + 7;
 int hash::mod2 = 998244353;
 
-class block_list;
+template<typename indexname, typename valuename>
+//index 的类型， value 的类型
+class block_list {
+
 class dataList;
 class data {
 private:
-    hash index;
-    int value;
+    indexname index;
+    valuename value;
     friend class block_list;
     friend class dataList;
 public:
-    data(string s = "", int v = 0):index(s), value(v) {}
+    data() {
+        index = indexname(), value = valuename();
+    }
+    data(indexname _index, valuename _val):index(_index), value(_val) {}
     bool operator <(const data &b) const {
         return index < b.index || (index == b.index && value < b.value);
     }
     bool operator == (const data &b) const {
         return index == b.index && value == b.value;
     }
-    void show() const {
-        cerr << value << ' '; index.show();
-    }
+    // void show() const {
+    //     cerr << value << ' '; index.show();
+    // }
 };
 class node {
 private:
@@ -71,9 +77,6 @@ public:
     dataList() {}
 };
 
-// const int szdataList = sizeof(dataList);
-// const int sznode = sizeof(node);
-class block_list {
 private:
     int head;
     MemoryRiver<node, 1> file_head;
@@ -84,7 +87,8 @@ public:
         file_body.initialise(s + "_body");
         file_head.get_info(head, 1);
     }
-    void insert(const data &new_data) {
+    void insert(const indexname &_index, const valuename &_val) {
+        data new_data(_index, _val);
         node res;
         dataList List;
         int index = head;
@@ -106,12 +110,9 @@ public:
             if (List.a[i] < new_data)
                 {pos = i + 1; break;}
             else List.a[i + 1] = List.a[i];
-        // cerr << "ins : " << pos << '\n';
         List.a[pos] = new_data;
         res.max_data = std::max(res.max_data, new_data);
         if (res.sz == MAX_BLOCK) {
-            // assert(0);
-            // cerr << "split: ";
             dataList new_List;
             node new_node(MAX_BLOCK - MAX_BLOCK / 2, 0, res.next);
             for (int i = MAX_BLOCK / 2; i < MAX_BLOCK; i++)
@@ -132,7 +133,8 @@ public:
             file_head.update(res, index);
         }
     }
-    void del(const data &del_data) {
+    void del(const indexname &_index, const valuename &_val) {
+        data del_data(_index, _val);
         if (head == -1) return;
         node res; 
         int index = head, frontpoint = head;
@@ -145,15 +147,11 @@ public:
         dataList List;
         file_body.read(List, res.index);
         int pos = -1;
-        // cerr << res.sz << ' '; res.max_data.show();
-        // for (int i = 0; i < res.sz; i++) List.a[i].show();
         for (int i = 0; i < res.sz; i++)
             if (del_data == List.a[i])
                 {pos = i; break;}
         if (pos == -1) return;
-        // cerr << "find del\n";
         if (res.sz == 1) {
-            // cerr << "!!\n";
             file_body.Delete(res.index);
             if (index == head) file_head.Delete(index), head = res.next;
             else {
@@ -172,12 +170,11 @@ public:
         file_body.update(List, res.index);
         file_head.update(res, index);
     }
-    void find(const hash &index) {
+    void find(const indexname &index) {
         int i = head; node res;
         int flag = 0, cnt = 0;
         while(i != -1) {
             file_head.read(res, i);
-            // cerr << i << ' ' << res.next << ' ' << flag << '\n';
             if (flag == 1) {
                 dataList blockdata;
                 file_body.read(blockdata, res.index);
@@ -187,15 +184,11 @@ public:
                 }
             }
             else if (flag == 0) {
-                // res.max_data.show();
-                // index.show();
                 if (res.max_data.index < index) {i = res.next; continue;}
                 flag = 1;
                 dataList blockdata;
                 file_body.read(blockdata, res.index);
-                // cerr << "sz: " << res.sz << '\n';
                 for (int i = 0; i < res.sz; i++) {
-                    // blockdata[i].index.show();
                     if (blockdata[i].index == index) cnt++, cout << blockdata[i].value << ' ';
                     else if (index < blockdata[i].index) {flag = -1; break;}
                 }
@@ -208,32 +201,30 @@ public:
     }
     ~block_list() {
         file_head.write_info(head, 1);
-        // cerr << "delete!\n";
     }
 };
 
 int main() {
-    block_list database("test");
+    // std::cerr << "new test2!\n";
+    block_list<hash, int> database("test");
     int n; cin >> n;
     while(n--) {
         string s; cin >> s;
         if (s == "insert") {
             string s; int value;
             cin >> s >> value;
-            // hash(s).show();
-            database.insert(data(s, value));
+            database.insert(s, value);
         }
         else if (s == "delete") {
             string s; int value;
             cin >> s >> value;
-            database.del(data(s, value));
+            database.del(s, value);
         }
         else if (s == "find") {
             string s; cin >> s;
             database.find(hash(s));
         }
         else assert(0);
-        // cerr << "work\n";
     }
     return 0;
 }

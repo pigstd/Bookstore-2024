@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_compile_options(-Wall)
 
-add_executable(database 
-    MemoryRiver.hpp
+add_executable(code 
+    src/MemoryRiver.hpp
     database.cpp
 )
