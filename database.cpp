@@ -1,11 +1,12 @@
 #include "src/MemoryRiver.hpp"
 #include <iostream>
 #include <assert.h>
+#include <functional>
 using std::cin;
 using std::cout;
 using std::cerr;
 
-const int MAX_BLOCK = 500;
+const int MAX_BLOCK = 700;
 
 class hash {
 private:
@@ -170,7 +171,8 @@ public:
         file_body.update(List, res.index);
         file_head.update(res, index);
     }
-    void find(const indexname &index) {
+    //找到所有索引为 index 的并且用 opt 函数操作，返回找到的元素个数
+    int find_with_opt(const indexname &index, std::function<void(const valuename&)> opt) {
         int i = head; node res;
         int flag = 0, cnt = 0;
         while(i != -1) {
@@ -179,7 +181,7 @@ public:
                 dataList blockdata;
                 file_body.read(blockdata, res.index);
                 for (int i = 0; i < res.sz; i++) {
-                    if (blockdata[i].index == index) cnt++, cout << blockdata[i].value << ' ';
+                    if (blockdata[i].index == index) cnt++, opt(blockdata[i].value);
                     else {flag = -1; break;}
                 }
             }
@@ -189,23 +191,55 @@ public:
                 dataList blockdata;
                 file_body.read(blockdata, res.index);
                 for (int i = 0; i < res.sz; i++) {
-                    if (blockdata[i].index == index) cnt++, cout << blockdata[i].value << ' ';
+                    if (blockdata[i].index == index) cnt++, opt(blockdata[i].value);
                     else if (index < blockdata[i].index) {flag = -1; break;}
                 }
             }
             if (flag == -1) break;
             i = res.next;
         }
-        if (cnt == 0) cout << "null\n";
-        else cout << '\n';
+        return cnt;
+    }
+    //找到所有索引为 index，返回 vector
+    std::vector<valuename> find_with_vector(const indexname &index) {
+        std::vector<valuename> allvalue;
+        int i = head; node res;
+        int flag = 0, cnt = 0;
+        while(i != -1) {
+            file_head.read(res, i);
+            if (flag == 1) {
+                dataList blockdata;
+                file_body.read(blockdata, res.index);
+                for (int i = 0; i < res.sz; i++) {
+                    if (blockdata[i].index == index) cnt++, allvalue.push_back(blockdata[i].value);
+                    else {flag = -1; break;}
+                }
+            }
+            else if (flag == 0) {
+                if (res.max_data.index < index) {i = res.next; continue;}
+                flag = 1;
+                dataList blockdata;
+                file_body.read(blockdata, res.index);
+                for (int i = 0; i < res.sz; i++) {
+                    if (blockdata[i].index == index) cnt++, allvalue.push_back(blockdata[i].value);
+                    else if (index < blockdata[i].index) {flag = -1; break;}
+                }
+            }
+            if (flag == -1) break;
+            i = res.next;
+        }
+        return allvalue;
     }
     ~block_list() {
         file_head.write_info(head, 1);
     }
 };
 
+void print_value(const int &x) {
+    cout << x << ' ';
+}
+
 int main() {
-    // std::cerr << "new test2!\n";
     block_list<hash, int> database("test");
     int n; cin >> n;
     while(n--) {
@@ -222,7 +256,15 @@ int main() {
         }
         else if (s == "find") {
             string s; cin >> s;
-            database.find(hash(s));
+            // std::vector<int> v = database.find_with_vector(s);
+            // if (v.size() == 0) cout << "null\n";
+            // else {
+            //     for (int x : v) cout << x << ' ';
+            //     cout << '\n';
+            // }
+            int cnt = database.find_with_opt(hash(s), print_value);
+            if (cnt == 0) cout << "null\n";
+            else cout << '\n';
         }
         else assert(0);
     }
