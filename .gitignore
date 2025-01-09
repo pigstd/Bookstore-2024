@@ -2,6 +2,9 @@
 .DS_Store
 Thumbs.db
 
+# 测试数据
+bookstore-testcases/
+
 # 编辑器/IDE 生成的文件和目录
 .vscode/
 .idea/
