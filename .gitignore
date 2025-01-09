@@ -3,7 +3,7 @@
 Thumbs.db
 
 # 测试数据
-bookstore-testcases/
+testcases/
 
 # 编辑器/IDE 生成的文件和目录
 .vscode/
