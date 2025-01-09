@@ -9,6 +9,7 @@ using std::string;
 using std::fstream;
 using std::ifstream;
 using std::ofstream;
+using std::cerr;
 
 const string delname = "_del";
 template<class T, int info_len = 2>
@@ -24,10 +25,12 @@ public:
 
     MemoryRiver(const string& file_name) : file_name(file_name) {}
 
-    void initialise(string FN = "", int num = 0, int is_cover = 1) {
+    void initialise(string FN = "", int num = 0, int is_cover = 0) {
         if (FN != "") file_name = FN;
         // 如果存在文件，就不修改，视情况选择是否强制覆盖
-        if (is_cover && std::filesystem::exists(file_name)) return;
+        //is_cover = 1 强制覆盖
+        if (is_cover == 0 && std::filesystem::exists(file_name)) return;
+        // cerr << "cover!\n";
         file.open(file_name, std::ios::out);
         file_del.open(file_name + delname, std::ios::out);
         int tmp = 0, tmp_1 = num;
@@ -35,6 +38,7 @@ public:
             file.write(reinterpret_cast<char *>(&tmp_1), sizeof(int));
         file_del.write(reinterpret_cast<char *>(&tmp), sizeof(int));
         file.close();
+        file_del.close();
     }
 
     //读出第n个int的值赋给tmp，1_base

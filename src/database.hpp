@@ -8,7 +8,7 @@ using std::cerr;
 
 const int MAX_BLOCK = 700;
 
-template<typename indexname, typename valuename>
+template<typename indexname, typename valuename, int is_cover = 0>
 //index 的类型， value 的类型
 //indexname 可比较（重载 < 和 ==）
 class block_list {
@@ -41,7 +41,7 @@ private:
     data max_data;
     friend class block_list;
 public:
-    node(int sz = 0, int index = 0, int next = -1) {
+    node(int sz = 0, int index = 0, int next = -1) : max_data() {
         this->sz = sz, this->index = index, this->next = next;
     }
 };
@@ -63,8 +63,8 @@ private:
     MemoryRiver<dataList, 0> file_body;
 public:
     block_list(string s = "") {
-        file_head.initialise(s + "_head", -1);
-        file_body.initialise(s + "_body");
+        file_head.initialise(s + "_head", -1, is_cover);
+        file_body.initialise(s + "_body", 0 , is_cover);
         file_head.get_info(head, 1);
     }
     void insert(const indexname &_index, const valuename &_val) {
