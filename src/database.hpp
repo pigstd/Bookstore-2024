@@ -1,3 +1,6 @@
+#ifndef DATABASE
+#define DATABASE
+
 #include "MemoryRiver.hpp"
 #include <iostream>
 #include <assert.h>
@@ -6,7 +9,7 @@ using std::cin;
 using std::cout;
 using std::cerr;
 
-const int MAX_BLOCK = 700;
+const int MAX_BLOCK = 700;//一个块的大小
 
 template<typename indexname, typename valuename, int is_cover = 0>
 //index 的类型， value 的类型
@@ -213,3 +216,6 @@ public:
         file_head.write_info(head, 1);
     }
 };
+
+
+#endif //DATABASE

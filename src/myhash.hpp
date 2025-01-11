@@ -1,3 +1,6 @@
+#ifndef MYHASH
+#define MYHASH
+
 #include <string>
 #include <iostream>
 
@@ -22,3 +25,5 @@ int hash::base1 = 131;
 int hash::base2 = 137;
 int hash::mod1 = 1e9 + 7;
 int hash::mod2 = 998244353;
+
+#endif //MYHASH
