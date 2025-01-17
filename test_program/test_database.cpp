@@ -1,5 +1,5 @@
-#include "src/database.hpp"
-#include "src/myhash.hpp"
+#include "../src/database.hpp"
+#include "../src/myhash.hpp"
 #include <iostream>
 #include <functional>
 using std::cin;

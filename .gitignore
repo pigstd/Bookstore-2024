@@ -5,6 +5,9 @@ Thumbs.db
 # 测试数据
 testcases/
 
+# 测试代码的build
+test_program/build/
+
 # 编辑器/IDE 生成的文件和目录
 .vscode/
 .idea/

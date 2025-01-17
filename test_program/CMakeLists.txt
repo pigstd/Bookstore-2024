@@ -9,5 +9,5 @@ add_executable(code
     ../src/MemoryRiver.hpp
     ../src/myhash.hpp
     ../src/database.hpp
-    test_database.cpp
+    test_memoryriver.cpp
 )
