@@ -1,10 +1,10 @@
 #ifndef EXCEPTION
 #define EXCEPTION
-#include<exception>
+#include <exception>
 
 class Invalid : public std::exception {
 public:
-    virtual char * what() const noexcept override {
+    virtual const char * what() const noexcept override {
         return "Invalid";
     }
 };

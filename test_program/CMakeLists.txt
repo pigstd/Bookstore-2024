@@ -6,8 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_compile_options(-Wall)
 
 add_executable(code 
-    ../src/MemoryRiver.hpp
-    ../src/myhash.hpp
-    ../src/database.hpp
-    test_memoryriver.cpp
+    ../src/mystr.hpp
+    ../src/Exception.hpp
+    test_mystr.cpp
 )
