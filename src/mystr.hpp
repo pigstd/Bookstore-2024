@@ -3,6 +3,7 @@
 #include "Exception.hpp"
 #include <string>
 #include <iostream>
+#include <functional>
 using std::ostream;
 
 // 长度最长为 MAX_Len 的字符串
@@ -21,8 +22,8 @@ public:
     // 构造函数（传入 std::string）
     str(std::string s = "") {
         if (s.size() > MAX_Len) throw Invalid();
-        for (int i = 0; i < s.size(); i++) ch[i] = s[i];
-        for (int i = s.size(); i <= MAX_Len; i++) ch[i] = '\0';
+        for (int i = 0; i < (int)s.size(); i++) ch[i] = s[i];
+        for (int i = (int)s.size(); i <= MAX_Len; i++) ch[i] = '\0';
     }
     str(const str<MAX_Len> &s) {
         for (int i = 0; i <= MAX_Len; i++) ch[i] = s.ch[i];
@@ -30,6 +31,14 @@ public:
     str& operator=(const str<MAX_Len> &s) {
         for (int i = 0; i <= MAX_Len; i++) ch[i] = s.ch[i];
         return *this;
+    }
+    //判断这个字符串的所有字符是否都满足 checkfun 函数的限制
+    bool check(std::function<bool(char)> checkfun) {
+        for (int i = 0; i <= MAX_Len; i++)
+            if (ch[i] == '\0') return true;
+            else if (checkfun(ch[i]) == false)
+                return false;
+        return true;
     }
 };
 
