@@ -19,9 +19,11 @@ template<int MAX__Len>
 private:
     char ch[MAX_Len + 1];
 public:
-    // 构造函数（传入 std::string）
-    str(std::string s = "") {
+    // 构造函数（传入 std::string），字符集必须满足 checkfun 的限制（默认没限制）
+    // 长度过长或者字符集不满足限制则抛出异常
+    str(std::string s = "", std::function<bool(char)> checkfun = [](char ch){return 1;}) {
         if (s.size() > MAX_Len) throw Invalid();
+        for (char ch : s) if (checkfun(ch) == false) throw Invalid(); 
         for (int i = 0; i < (int)s.size(); i++) ch[i] = s[i];
         for (int i = (int)s.size(); i <= MAX_Len; i++) ch[i] = '\0';
     }

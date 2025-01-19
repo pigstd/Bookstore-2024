@@ -12,7 +12,12 @@ int main() {
     cout << (str1 == str2) << ' ' << (str1 < str2) << ' ' << (str2 < str1) << '\n';
     // cout << checknum('2') << '\n';
     cout << str1.check(checknum) << '\n';
-    str2 = str<40>("abc");
+    try {
+        str2 = str<40>("abc", checknum);
+    }
+    catch (exception &x) {
+        cout << x.what() << '\n';
+    }
     cout << str2.check(checknum) << '\n';
     return 0;
 }
