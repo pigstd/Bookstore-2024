@@ -4,6 +4,7 @@
 #include "mystr.hpp"
 #include "MemoryRiver.hpp"
 #include "Exception.hpp"
+#include "database.hpp"
 #include <string>
 #include <cctype>
 
@@ -31,25 +32,72 @@ bool checkPrivilege(const string &s) {
 }
 
 class User {
-public:
+private:
     int UserID_int;
     usertype userType;
     userstr UserID, Password, Username;
 public:
-    User(string _UserID, string _Password, string Privilege, string _Username) {
+    // 生成游客
+    User(): UserID(), Password(), Username() {UserID_int = -1, userType = visitor;}
+    // 不指定 Privilege
+    User(string _UserID, string _Password, string _Username) {
         UserID_int = -1;// UserID_int 是在文件里存储的位置，一开始不知道
-        if (checkPrivilege(Privilege) == false) throw Invalid();
-        userType = usertype(Privilege[0] - '0');
+        userType = customer;
         UserID = userstr(_UserID, is_visible),
         Password = userstr(_Password, isvalidname),
         Username = userstr(_Username, isvalidname);
     }
-    //将用户添加进文件 file，如果 UserID_int 是 -1，则分配 UserID_int
-    void useradd(MemoryRiver<User> &file) {
-        if (UserID_int == -1)
-            UserID_int = file.write(*this);
-        file.update(*this, UserID_int);
+    // 指定 Privilege
+    User(string _UserID, string _Password, string Privilege, string _Username) :
+    User(_UserID, _Password, _Username) {
+        if (checkPrivilege(Privilege) == false) throw Invalid();
+        userType = usertype(Privilege[0] - '0');
     }
+    /*
+    修改 UserID_int 位置上的用户信息
+    存入文件 User
+    */
+    void userupd();
+    /*
+    将用户添加进文件 User 和键值数据库 UserID_to_int
+    若用户 ID 已经存在则抛出异常
+    */
+    void useradd();
+    // 修改用户的密码并且更新数据库
+    void changepassword(string, string);
+    // 修改用户的密码并且更新数据库（不给出 currentpassword）
+    void changepassword(string);
+    //判断密码是否正确
+    bool checkpassword(string _password) {return Password == userstr(_password, isvalidname);}
 };
+
+
+void User::userupd() {
+    MemoryRiver <User> file("User");
+    file.update(*this, UserID_int);
+}
+void User::useradd() {
+    MemoryRiver<User> file("User");
+    block_list<userstr, int, 0> databaseUserID("UserID_to_int");
+    std::vector<int> user = databaseUserID.find_with_vector(UserID);
+    if (user.size() != 0) throw Invalid();
+    UserID_int = file.write(*this);
+    file.update(*this, UserID_int);
+    databaseUserID.insert(UserID, UserID_int);
+}
+
+void User::changepassword(string _currentpassword, string _newpassword) {
+    userstr currentpassword(_currentpassword, isvalidname),
+    newpassword(_newpassword, isvalidname);
+    if (!(currentpassword == Password)) throw Invalid();
+    Password = newpassword;
+    userupd();
+}
+void User::changepassword(string _newpassword) {
+    if (userType != owner) throw Invalid();
+    userstr newpassword(_newpassword, isvalidname);
+    Password = newpassword;
+    userupd();
+}
 
 #endif //USER
