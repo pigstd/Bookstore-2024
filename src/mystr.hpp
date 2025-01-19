@@ -5,6 +5,8 @@
 #include <iostream>
 using std::ostream;
 
+// 长度最长为 MAX_Len 的字符串
+//支持比较，判等
 template<int MAX_Len>
 class str {
 template<int MAX__Len>
@@ -16,6 +18,7 @@ template<int MAX__Len>
 private:
     char ch[MAX_Len + 1];
 public:
+    // 构造函数（传入 std::string）
     str(std::string s = "") {
         if (s.size() > MAX_Len) throw Invalid();
         for (int i = 0; i < s.size(); i++) ch[i] = s[i];
