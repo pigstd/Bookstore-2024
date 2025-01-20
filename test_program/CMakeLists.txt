@@ -15,5 +15,5 @@ add_executable(code
     ../src/mystack.hpp
     ../src/database.hpp
     ../src/MemoryRiver.hpp
-    test_op_users.cpp
+    test_database.cpp
 )

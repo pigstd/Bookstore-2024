@@ -48,7 +48,7 @@ public:
 };
 
 int main() {
-    block_list<mystr, int, 0> database("test");
+    block_list<mystr, int, 1> database("test");
     // string s = "233";
     // database.insert(s, 1);
     // cout << database.find_with_opt(s, print_value) << '\n';
@@ -64,6 +64,9 @@ int main() {
             string s; int value;
             cin >> s >> value;
             database.del(s, value);
+        }
+        else if (s == "findall") {
+            database.all_opt(print_value);
         }
         else if (s == "find") {
             string s; cin >> s;

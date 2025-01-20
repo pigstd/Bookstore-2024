@@ -156,7 +156,22 @@ public:
         file_head.update(res, index);
         file_head.write_info(head, 1);
     }
-    //找到所有索引为 index 的并且用 opt 函数操作，返回找到的元素个数
+    // 对于所有按照 index 从小到大并且用 opt 函数操作，返回 size
+    int all_opt(std::function<void(const valuename&)> opt) {
+        int head; file_head.get_info(head, 1);
+        int i = head; node res;
+        int cnt = 0;
+        while(i != -1) {
+            file_head.read(res, i);
+            dataList blockdata;
+            file_body.read(blockdata, res.index);
+            for (int i = 0; i < res.sz; i++)
+                 cnt++, opt(blockdata[i].value);
+            i = res.next;
+        }
+        return cnt;
+    }
+    // 找到所有索引为 index 的并且用 opt 函数操作，返回找到的元素个数
     int find_with_opt(const indexname &index, std::function<void(const valuename&)> opt) {
         int head; file_head.get_info(head, 1);
         int i = head; node res;
