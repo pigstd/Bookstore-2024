@@ -9,17 +9,19 @@ int main() {
     // cout << fileuser.write(root) << '\n';
     init();
     User nowuser;
-    // root.print();
-    try {
-        string s = "su root sjtu";
-        auto orders = split_string(s);
-        su(nowuser, orders);
-        nowuser.print();
-        s = "logout", orders = split_string(s);
-        logout(nowuser, orders);
-        nowuser.print();
+    nowuser.useradd();
+    //登录栈，分别是用户以及选择的书的 id
+    Loginstack LoginStack; LoginStack.push_back({nowuser.getID_int(), -1});
+    string optstr;
+    while(getline(cin, optstr)) {
+        try {
+            operation(LoginStack, optstr);
+        }
+        catch(exception &err) {
+            cout << err.what() << '\n';
+        }
     }
-    catch(exception &err) {
-        cout << err.what() << '\n';
-    }
+    optstr = "quit";
+    operation(LoginStack, optstr);
+    return 0;
 }

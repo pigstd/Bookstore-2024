@@ -12,8 +12,16 @@
 #include <string>
 #include <vector>
 
+using std::pair;
 using std::string;
 using std::vector;
+
+struct User_login {
+    int user, select;
+    User_login(int _user, int _select = -1) : user(_user), select(_select) {}
+};
+
+#define Loginstack vector<User_login>
 
 /*
 主要操作：
@@ -38,7 +46,7 @@ vector<string> split_string(string s) {
     return res;
 }
 // 进行操作
-void operation(User &nowuser, string &oprstr);
+void operation(Loginstack &LoginStack, string &oprstr);
 
 /*
 # 帐户系统指令
@@ -68,67 +76,61 @@ User findUser(int UserID_int) {
     return res;
 }
 
-// su 登录 传入当前的用户以及指令
-void su(User &nowuser, vector<string> orders) {
+// su 登录 传入当前的登录栈以及指令
+void su(Loginstack &LoginStack, vector<string> orders) {
     if (orders.size() < 2 || orders.size() > 3) throw Invalid();
     userstr UserID(orders[1], isvalidname);
     int UserID_int = findUser(UserID);
     User su_user = findUser(UserID_int);
+    // cerr << "userFound\n";
     if (orders.size() == 3) {
         if (su_user.checkpassword(orders[2]) == false) throw Invalid();
     }
-    else if (nowuser.gettype() <= su_user.gettype()) throw Invalid();
+    else if (findUser(LoginStack.back().user).gettype() <= su_user.gettype()) throw Invalid();
     // 可以登录
     su_user.Loginupd(+1);
-    nowuser = su_user;
-    mystack<int> stackuser("nowUser", 0);
-    stackuser.insert(UserID_int);
+    LoginStack.push_back({su_user.getID_int(), -1});
 }
 // logout 登出 传入当前的用户以及指令
-void logout(User &nowuser, vector<string> orders) {
+void logout(Loginstack &LoginStack, vector<string> orders) {
     if (orders.size() != 1) throw Invalid();
-    if (nowuser.gettype() < customer) throw Invalid();
-    mystack<int> stackuser("nowUser", 0);
-    if (stackuser.size() == 0) throw Invalid();
-    nowuser.Loginupd(-1);
-    stackuser.pop();
-    if (stackuser.size() != 0) {
-        int UserID_int = stackuser.top();
-        MemoryRiver<User, 0> fileuser;
-        fileuser.read(nowuser, UserID_int);
-    }
-    else nowuser = User();
+    if (findUser(LoginStack.back().user).gettype() < customer) throw Invalid();
+    if (LoginStack.size() == 1) throw Invalid();
+    findUser(LoginStack.back().user).Loginupd(-1);
+    LoginStack.pop_back();
 }
 // register 注册 传入当前的用户以及指令
-void registeruser(User &nowuser, vector<string> orders) {
+void registeruser(Loginstack &LoginStack, vector<string> orders) {
     if (orders.size() != 4) throw Invalid();
     User newuser(orders[1], orders[2], orders[3]);
     newuser.useradd();
 }
 // passwd 修改密码 传入当前的用户以及指令
-void passwd(User &nowuser, vector<string> orders) {
+void passwd(Loginstack &LoginStack, vector<string> orders) {
     if (orders.size() < 3 || orders.size() > 4) throw Invalid();
-    if (nowuser.gettype() < customer) throw Invalid();
+    if (findUser(LoginStack.back().user).gettype() < customer) throw Invalid();
     userstr UserID(orders[1], isvalidname);
     int UserID_int = findUser(UserID);
     User upduser = findUser(UserID_int);
-    if (orders.size() == 3)
+    if (orders.size() == 3) {
+        if (findUser(LoginStack.back().user).gettype() < owner) throw Invalid();
         upduser.changepassword(orders[2]);
+    }
     else
         upduser.changepassword(orders[2], orders[3]);
 }
 // useradd 添加用户 传入当前的用户以及指令
-void useradd(User &nowuser, vector<string> orders) {
-    if (nowuser.gettype() < employee) throw Invalid();
+void useradd(Loginstack &LoginStack, vector<string> orders) {
+    if (findUser(LoginStack.back().user).gettype() < employee) throw Invalid();
     if (orders.size() != 5) throw Invalid();
     User newuser(orders[1], orders[2], orders[3], orders[4]);
-    if (newuser.gettype() >= nowuser.gettype()) throw Invalid();
+    if (newuser.gettype() >= findUser(LoginStack.back().user).gettype()) throw Invalid();
     newuser.useradd();
 }
 // delete 删除用户 传入当前的用户以及指令
-void deleteuser(User &nowuser, vector<string> orders) {
+void deleteuser(Loginstack &LoginStack, vector<string> orders) {
     if (orders.size() != 2) throw Invalid();
-    if (nowuser.gettype() < owner) throw Invalid();
+    if (findUser(LoginStack.back().user).gettype() < owner) throw Invalid();
     // 如果待删除账户已经登录则操作失败
     userstr UserID(orders[1], isvalidname);
     int UserID_int = findUser(UserID);
@@ -143,17 +145,24 @@ void deleteuser(User &nowuser, vector<string> orders) {
 //初始化
 void init() {
     /*
-    User 的初始化：Users, UserID_to_int, nowUser
+    需要检查是否是第一次启动，通过检查文件是否存在即可
+    到最后再加上这个功能吧，调试的时候可以去掉，毕竟比较麻烦
+    */
+
+    /*
+    User 的初始化：Users, UserID_to_int
     */
     MemoryRiver<User, 0> fileuser;
     fileuser.initialise("Users", 0, 1);
     block_list<userstr, int, 1> databaseuser("UserID_to_int");
-    mystack<int> stackuser("nowUser", 1);
+    // 注册超级管理员 root
+    User root("root", "sjtu", "7", "superadmin");
+    root.useradd();
 }
 
 
 // 使用名字前面带下划线来区分
-enum operatorType {_Invalid, _exit,// 基础指令
+enum operatorType {_Invalid, _quit,// 基础指令
 _su, _logout, _register, _passwd, _useradd, _delete, // 账户系统指令
 _showbook, _buy, _select, _modify, _import, // 图书系统指令
 _showfinance, _log, _reportfinance, _reportemployee, // 日志系统指令
@@ -163,7 +172,7 @@ operatorType get_opt_type(vector<string> &orders) {
     // 基础指令 _Invalid, _exit
     if (orders.size() == 0) return _Invalid;
     operatorType type = _Invalid;
-    if (orders[0] == "exit" || orders[0] == "quit") type = _exit;
+    if (orders[0] == "exit" || orders[0] == "quit") type = _quit;
     // 账户系统指令 _su, _logout, _register, _passwd, _useradd, _delete
     if (orders[0] == "su") type = _su;
     if (orders[0] == "logout") type = _logout;
@@ -189,14 +198,39 @@ operatorType get_opt_type(vector<string> &orders) {
     return type;
 }
 
-void operation(User &nowuser, string &optstr) {
+void quit(Loginstack &LoginStack, vector<string> &orders) {
+    // cerr << "quit!\n";
+    if (orders.size() != 1) throw Invalid();
+    vector<string> logoutorders(1, "logout");
+    while(LoginStack.size() != 1) logout(LoginStack, logoutorders);
+    exit(0);
+}
+
+void operation(Loginstack &LoginStack, string &optstr) {
     vector<string> orders = split_string(optstr);
     operatorType type = get_opt_type(orders);
     switch (type) {
-    case _su:
-        
+    case _quit:
+        quit(LoginStack, orders);
         break;
-    
+    case _su:
+        su(LoginStack, orders);
+        break;
+    case _logout:
+        logout(LoginStack, orders);
+        break;
+    case _register:
+        registeruser(LoginStack, orders);
+        break;
+    case _passwd:
+        passwd(LoginStack, orders);
+        break;
+    case _useradd:
+        useradd(LoginStack, orders);
+        break;
+    case _delete:
+        deleteuser(LoginStack, orders);
+        break;
     default:
         throw Invalid();
         break;

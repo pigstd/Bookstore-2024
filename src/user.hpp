@@ -44,9 +44,9 @@ public:
         UserID_int = -1;// UserID_int 是在文件里存储的位置，一开始不知道
         userType = customer;
         LoginTime = 0;
-        UserID = userstr(_UserID, is_visible),
+        UserID = userstr(_UserID, isvalidname),
         Password = userstr(_Password, isvalidname),
-        Username = userstr(_Username, isvalidname);
+        Username = userstr(_Username, is_visible);
     }
     // 指定 Privilege
     User(string _UserID, string _Password, string Privilege, string _Username) :
@@ -76,6 +76,8 @@ public:
     bool isLogin() const {return LoginTime != 0;}
     // 登录次数更新，加 x
     void Loginupd(int x);
+    // 获得 ID
+    int getID_int() const {return UserID_int;}
     // 输出账户信息 用于调试
     void print() const {
         cout << UserID_int << ' ' << LoginTime << ' ' <<
@@ -99,16 +101,16 @@ void User::useradd() {
     databaseuser.insert(UserID, UserID_int);
 }
 
+void User::changepassword(string _newpassword) {
+    userstr newpassword(_newpassword, isvalidname);
+    Password = newpassword;
+    userupd();
+}
+
 void User::changepassword(string _currentpassword, string _newpassword) {
     userstr currentpassword(_currentpassword, isvalidname),
     newpassword(_newpassword, isvalidname);
     if (!(currentpassword == Password)) throw Invalid();
-    Password = newpassword;
-    userupd();
-}
-void User::changepassword(string _newpassword) {
-    if (userType != owner) throw Invalid();
-    userstr newpassword(_newpassword, isvalidname);
     Password = newpassword;
     userupd();
 }
