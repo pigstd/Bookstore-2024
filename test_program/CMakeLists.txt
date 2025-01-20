@@ -6,8 +6,14 @@ set(CMAKE_CXX_STANDARD 20)
 add_compile_options(-Wall)
 
 add_executable(code 
-    ../src/mystack.hpp
+    ../src/operator.hpp
     ../src/MemoryRiver.hpp
+    ../src/Info.hpp
     ../src/Exception.hpp
-    test_stack.cpp
+    ../src/user.hpp
+    ../src/mystr.hpp
+    ../src/mystack.hpp
+    ../src/database.hpp
+    ../src/MemoryRiver.hpp
+    test_op_users.cpp
 )

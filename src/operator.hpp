@@ -34,10 +34,11 @@ vector<string> split_string(string s) {
         }
         else now += ch;
     }
+    if (now != "") res.push_back(now);
     return res;
 }
 // 进行操作
-void operation();
+void operation(User &nowuser, string &oprstr);
 
 /*
 # 帐户系统指令
@@ -69,7 +70,7 @@ User findUser(int UserID_int) {
 
 // su 登录 传入当前的用户以及指令
 void su(User &nowuser, vector<string> orders) {
-    if (orders.size() < 2 || orders.size() > 3) return;
+    if (orders.size() < 2 || orders.size() > 3) throw Invalid();
     userstr UserID(orders[1], isvalidname);
     int UserID_int = findUser(UserID);
     User su_user = findUser(UserID_int);
@@ -78,6 +79,7 @@ void su(User &nowuser, vector<string> orders) {
     }
     else if (nowuser.gettype() <= su_user.gettype()) throw Invalid();
     // 可以登录
+    su_user.Loginupd(+1);
     nowuser = su_user;
     mystack<int> stackuser("nowUser", 0);
     stackuser.insert(UserID_int);
@@ -88,6 +90,7 @@ void logout(User &nowuser, vector<string> orders) {
     if (nowuser.gettype() < customer) throw Invalid();
     mystack<int> stackuser("nowUser", 0);
     if (stackuser.size() == 0) throw Invalid();
+    nowuser.Loginupd(-1);
     stackuser.pop();
     if (stackuser.size() != 0) {
         int UserID_int = stackuser.top();
@@ -108,11 +111,11 @@ void passwd(User &nowuser, vector<string> orders) {
     if (nowuser.gettype() < customer) throw Invalid();
     userstr UserID(orders[1], isvalidname);
     int UserID_int = findUser(UserID);
-    User nowuser = findUser(UserID_int);
+    User upduser = findUser(UserID_int);
     if (orders.size() == 3)
-        nowuser.changepassword(orders[2]);
+        upduser.changepassword(orders[2]);
     else
-        nowuser.changepassword(orders[2], orders[3]);
+        upduser.changepassword(orders[2], orders[3]);
 }
 // useradd 添加用户 传入当前的用户以及指令
 void useradd(User &nowuser, vector<string> orders) {
@@ -148,4 +151,56 @@ void init() {
     mystack<int> stackuser("nowUser", 1);
 }
 
-#endif OPERATOR
+
+// 使用名字前面带下划线来区分
+enum operatorType {_Invalid, _exit,// 基础指令
+_su, _logout, _register, _passwd, _useradd, _delete, // 账户系统指令
+_showbook, _buy, _select, _modify, _import, // 图书系统指令
+_showfinance, _log, _reportfinance, _reportemployee, // 日志系统指令
+};
+
+operatorType get_opt_type(vector<string> &orders) {
+    // 基础指令 _Invalid, _exit
+    if (orders.size() == 0) return _Invalid;
+    operatorType type = _Invalid;
+    if (orders[0] == "exit" || orders[0] == "quit") type = _exit;
+    // 账户系统指令 _su, _logout, _register, _passwd, _useradd, _delete
+    if (orders[0] == "su") type = _su;
+    if (orders[0] == "logout") type = _logout;
+    if (orders[0] == "register") type = _register;
+    if (orders[0] == "passwd") type = _passwd;
+    if (orders[0] == "useradd") type = _useradd;
+    if (orders[0] == "delete") type = _delete;
+    // 图书系统指令 _showbook, _buy, _select, _modify, _import 
+    if (orders[0] == "show") {
+        if (orders.size() >= 2 && orders[1] == "finance") type = _showfinance;
+        else type = _showbook;
+    }
+    if (orders[0] == "buy") type = _buy;
+    if (orders[0] == "select") type = _select;
+    if (orders[0] == "modify") type = _modify;
+    if (orders[0] == "import") type = _import;
+    // 日志系统指令 _showfinance, _log, _reportfinance, _reportemployee
+    if (orders[0] == "log") type = _log;
+    if (orders[0] == "report" && orders.size() >= 2) {
+        if (orders[1] == "finance") type = _reportfinance;
+        if (orders[1] == "employee") type = _reportemployee;
+    }
+    return type;
+}
+
+void operation(User &nowuser, string &optstr) {
+    vector<string> orders = split_string(optstr);
+    operatorType type = get_opt_type(orders);
+    switch (type) {
+    case _su:
+        
+        break;
+    
+    default:
+        throw Invalid();
+        break;
+    }
+}
+
+#endif //OPERATOR

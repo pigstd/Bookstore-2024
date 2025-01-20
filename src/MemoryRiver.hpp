@@ -29,7 +29,7 @@ public:
         // 如果存在文件，就不修改，视情况选择是否强制覆盖
         // is_cover = 1 强制覆盖
         if (is_cover == 0 && std::filesystem::exists(file_name)) return;
-        // cerr << "cover!\n";
+        // cerr << "cover: " << file_name << '\n';
         file.open(file_name, std::ios::out);
         int _head = 0;
         file.write(reinterpret_cast<char *>(&_head), sizeof(int));

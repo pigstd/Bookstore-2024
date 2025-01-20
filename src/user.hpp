@@ -76,19 +76,25 @@ public:
     bool isLogin() const {return LoginTime != 0;}
     // 登录次数更新，加 x
     void Loginupd(int x);
+    // 输出账户信息 用于调试
+    void print() const {
+        cout << UserID_int << ' ' << LoginTime << ' ' <<
+        UserID << ' ' << Username << ' ' << Password << '\n';
+    }
 };
 
 
 void User::userupd() {
-    MemoryRiver <User, 0> fileuser("User");
+    MemoryRiver <User, 0> fileuser("Users");
     fileuser.update(*this, UserID_int);
 }
 void User::useradd() {
-    MemoryRiver<User, 0> fileuser("User");
+    MemoryRiver<User, 0> fileuser("Users");
     block_list<userstr, int, 0> databaseuser("UserID_to_int");
     std::vector<int> user = databaseuser.find_with_vector(UserID);
     if (user.size() != 0) throw Invalid();
     UserID_int = fileuser.write(*this);
+    // cerr << "add : " << UserID_int << '\n';
     fileuser.update(*this, UserID_int);
     databaseuser.insert(UserID, UserID_int);
 }
