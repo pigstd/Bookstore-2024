@@ -61,16 +61,15 @@ public:
 };
 
 private:
-    int head;
     MemoryRiver<node, 1> file_head;
     MemoryRiver<dataList, 0> file_body;
 public:
     block_list(string s = "") {
         file_head.initialise(s + "_head", -1, is_cover);
         file_body.initialise(s + "_body", 0 , is_cover);
-        file_head.get_info(head, 1);
     }
     void insert(const indexname &_index, const valuename &_val) {
+        int head; file_head.get_info(head, 1);
         data new_data(_index, _val);
         node res;
         dataList List;
@@ -115,8 +114,10 @@ public:
             file_body.update(List, res.index);
             file_head.update(res, index);
         }
+        file_head.write_info(head, 1);
     }
     void del(const indexname &_index, const valuename &_val) {
+        int head; file_head.get_info(head, 1);
         data del_data(_index, _val);
         if (head == -1) return;
         node res; 
@@ -144,6 +145,7 @@ public:
                 file_head.update(front, frontpoint);
                 file_head.Delete(index);
             }
+            file_head.write_info(head, 1);
             return;
         }
         for (int i = pos; i < res.sz; i++)
@@ -152,9 +154,11 @@ public:
         List.a[res.sz] = data();
         file_body.update(List, res.index);
         file_head.update(res, index);
+        file_head.write_info(head, 1);
     }
     //找到所有索引为 index 的并且用 opt 函数操作，返回找到的元素个数
     int find_with_opt(const indexname &index, std::function<void(const valuename&)> opt) {
+        int head; file_head.get_info(head, 1);
         int i = head; node res;
         int flag = 0, cnt = 0;
         while(i != -1) {
@@ -184,6 +188,7 @@ public:
     }
     //找到所有索引为 index，返回 vector
     std::vector<valuename> find_with_vector(const indexname &index) {
+        int head; file_head.get_info(head, 1);
         std::vector<valuename> allvalue;
         int i = head; node res;
         int flag = 0, cnt = 0;
@@ -211,9 +216,6 @@ public:
             i = res.next;
         }
         return allvalue;
-    }
-    ~block_list() {
-        file_head.write_info(head, 1);
     }
 };
 
