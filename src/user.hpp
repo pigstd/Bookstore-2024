@@ -33,16 +33,17 @@ bool checkPrivilege(const string &s) {
 
 class User {
 private:
-    int UserID_int;
+    int UserID_int, LoginTime;
     usertype userType;
     userstr UserID, Password, Username;
 public:
     // 生成游客
-    User(): UserID(), Password(), Username() {UserID_int = -1, userType = visitor;}
-    // 不指定 Privilege
+    User(): UserID(), Password(), Username() {LoginTime = 0, UserID_int = -1, userType = visitor;}
+    // 不指定 Privilege，类型是 customer
     User(string _UserID, string _Password, string _Username) {
         UserID_int = -1;// UserID_int 是在文件里存储的位置，一开始不知道
         userType = customer;
+        LoginTime = 0;
         UserID = userstr(_UserID, is_visible),
         Password = userstr(_Password, isvalidname),
         Username = userstr(_Username, isvalidname);
@@ -53,6 +54,8 @@ public:
         if (checkPrivilege(Privilege) == false) throw Invalid();
         userType = usertype(Privilege[0] - '0');
     }
+    //显示 userType
+    usertype gettype() const {return userType;}
     /*
     修改 UserID_int 位置上的用户信息
     存入文件 User
@@ -69,21 +72,25 @@ public:
     void changepassword(string);
     //判断密码是否正确
     bool checkpassword(string _password) {return Password == userstr(_password, isvalidname);}
+    // 判断是否在登录栈里面
+    bool isLogin() const {return LoginTime != 0;}
+    // 登录次数更新，加 x
+    void Loginupd(int x);
 };
 
 
 void User::userupd() {
-    MemoryRiver <User> file("User");
-    file.update(*this, UserID_int);
+    MemoryRiver <User, 0> fileuser("User");
+    fileuser.update(*this, UserID_int);
 }
 void User::useradd() {
-    MemoryRiver<User> file("User");
-    block_list<userstr, int, 0> databaseUserID("UserID_to_int");
-    std::vector<int> user = databaseUserID.find_with_vector(UserID);
+    MemoryRiver<User, 0> fileuser("User");
+    block_list<userstr, int, 0> databaseuser("UserID_to_int");
+    std::vector<int> user = databaseuser.find_with_vector(UserID);
     if (user.size() != 0) throw Invalid();
-    UserID_int = file.write(*this);
-    file.update(*this, UserID_int);
-    databaseUserID.insert(UserID, UserID_int);
+    UserID_int = fileuser.write(*this);
+    fileuser.update(*this, UserID_int);
+    databaseuser.insert(UserID, UserID_int);
 }
 
 void User::changepassword(string _currentpassword, string _newpassword) {
@@ -97,6 +104,11 @@ void User::changepassword(string _newpassword) {
     if (userType != owner) throw Invalid();
     userstr newpassword(_newpassword, isvalidname);
     Password = newpassword;
+    userupd();
+}
+
+void User::Loginupd(int x) {
+    LoginTime += x;
     userupd();
 }
 
