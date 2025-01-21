@@ -5,6 +5,7 @@
 #include <iostream>
 #include <functional>
 using std::ostream;
+using std::string;
 
 // 长度最长为 MAX_Len 的字符串
 //支持比较，判等
@@ -21,7 +22,7 @@ private:
 public:
     // 构造函数（传入 std::string），字符集必须满足 checkfun 的限制（默认没限制）
     // 长度过长或者字符集不满足限制则抛出异常
-    str(std::string s = "", std::function<bool(char)> checkfun = [](char ch){return 1;}) {
+    str(string s = "", std::function<bool(char)> checkfun = [](char ch){return 1;}) {
         if (s.size() > MAX_Len) throw Invalid();
         for (char ch : s) if (checkfun(ch) == false) throw Invalid(); 
         for (int i = 0; i < (int)s.size(); i++) ch[i] = s[i];
@@ -41,6 +42,13 @@ public:
             else if (checkfun(ch[i]) == false)
                 return false;
         return true;
+    }
+    operator string() const {
+        string res = "";
+        for (int i = 0; i <= MAX_Len; i++)
+            if (ch[i] != '\0') res += ch[i];
+            else break;
+        return res;
     }
 };
 

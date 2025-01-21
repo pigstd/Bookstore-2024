@@ -8,6 +8,8 @@ bool checknum(char ch) {
 
 int main() {
     str<40> str1("233"), str2("344");
+    string qwq = str1;
+    cout << qwq << ' ' << qwq.size() << '\n';
     cout << str1 << ' ' << str2 << '\n';
     cout << (str1 == str2) << ' ' << (str1 < str2) << ' ' << (str2 < str1) << '\n';
     // cout << checknum('2') << '\n';
