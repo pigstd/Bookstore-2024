@@ -11,6 +11,7 @@ using std::string;
 using std::function;
 
 // mystack : stack with memoryriver
+// 也支持直接用 index 查询， insert 的时候会返回 insert 的位置的 index
 template<typename T>
 class mystack {
 private:
@@ -35,8 +36,8 @@ public:
     }
     // 返回 stack 的 size
     int size() const;
-    // 插入元素
-    void insert(const T &);
+    // 插入元素，返回 insert 的位置的 index，可直接查询
+    int insert(const T &);
     // 弹出最后一个元素
     void pop();
     // 从底开始遍历所有元素，并且使用 func 函数
@@ -55,12 +56,13 @@ int mystack<T>::size() const {
     return sz;
 }
 template<typename T>
-void mystack<T>::insert(const T &data) {
+int mystack<T>::insert(const T &data) {
     T _data = const_cast<T &>(data);
     int sz = size(); sz++;
     MemoryRiver<T, 1> file(filename);
     file.update(_data, queryindex(sz));
     updsize(sz);
+    return queryindex(sz);
 }
 template<typename T>
 void mystack<T>::pop() {
