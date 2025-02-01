@@ -1,4 +1,4 @@
-#include "../src/operator.hpp"
+#include "src/operator.hpp"
 using namespace std;
 
 int main() {
