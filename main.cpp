@@ -1,4 +1,3 @@
-#include<bits/stdc++.h>
 #include "../src/operator.hpp"
 using namespace std;
 
