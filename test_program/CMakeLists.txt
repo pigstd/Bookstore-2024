@@ -4,6 +4,7 @@ project(test)
 set(CMAKE_CXX_STANDARD 20)
 
 add_compile_options(-Wall)
+add_compile_options(-Ofast)
 
 add_executable(code 
     ../src/operator.hpp
@@ -15,5 +16,5 @@ add_executable(code
     ../src/mystack.hpp
     ../src/database.hpp
     ../src/MemoryRiver.hpp
-    test_database.cpp
+    test_op.cpp
 )

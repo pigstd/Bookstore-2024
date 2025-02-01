@@ -5,6 +5,10 @@ Thumbs.db
 # 测试数据
 testcases/
 
+# 自己造的测试部分代码数据
+
+mytests/
+
 # 测试代码的build
 test_program/build/
 

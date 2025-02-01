@@ -3,11 +3,7 @@
 using namespace std;
 
 int main() {
-    // User root("root", "sjtu", "7", "admin");
-    // MemoryRiver<User, 0> fileuser;
-    // fileuser.initialise("User", 0, 1);
-    // cout << fileuser.write(root) << '\n';
-    cerr << "start test users\n";
+    cerr << "start test op\n";
     init();
     User nowuser;
     nowuser.useradd();

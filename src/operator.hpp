@@ -52,12 +52,6 @@ vector<string> split_string(string s) {
 // 进行操作
 void operation(Loginstack &LoginStack, string &oprstr);
 
-// 检验当前登录栈的权限是否 >= privilege，若不满足则抛出异常
-void check_Privilege(Loginstack &LoginStack, usertype privilege) {
-    if (findUser(LoginStack.back().user).gettype() < privilege)
-        throw Invalid();
-}
-
 /*
 # 帐户系统指令
 su [UserID] ([Password])?
@@ -84,6 +78,12 @@ User findUser(int UserID_int) {
     MemoryRiver<User, 0> fileuser("Users");
     fileuser.read(res, UserID_int);
     return res;
+}
+
+// 检验当前登录栈的权限是否 >= privilege，若不满足则抛出异常
+void check_Privilege(Loginstack &LoginStack, usertype privilege) {
+    if (findUser(LoginStack.back().user).gettype() < privilege)
+        throw Invalid();
 }
 
 // su 登录 传入当前的登录栈以及指令
@@ -254,7 +254,8 @@ void buy(Loginstack &LoginStack, vector<string> &orders) {
     if (book.queryRemain() < buynum) throw Invalid();
     book.updremain(-buynum);
     double buysum = buynum * book.queryPrice();
-    cout << std::fixed << std::setprecision(2) << ' ' << buysum << '\n';
+    cerr << buynum << ' ' << book.queryPrice() << '\n';
+    cout << std::fixed << std::setprecision(2) << buysum << '\n';
     // !!!
     // to be done:
     // 需要把价格的信息加入销售信息
@@ -283,7 +284,7 @@ void modify(Loginstack &LoginStack, vector<string> &orders) {
     int is_modified[] = {0, 0, 0, 0, 0};
     //first : 修改后的名字 second : 类型
     vector<pair<string, modifyType>> updinfo;
-    for (int i = 1; i < orders.size(); i++) {
+    for (int i = 1; i < (int)orders.size(); i++) {
         string order = orders[i];
         modifyType type;
         switch (order[1]) {
@@ -371,6 +372,13 @@ void init() {
     // 注册超级管理员 root
     User root("root", "sjtu", "7", "superadmin");
     root.useradd();
+    // book 的初始化
+    MemoryRiver<Book, 0> filebook("Books");
+    filebook.initialise("Books", 0, 1);
+    block_list<ISBNstr, int, 1> ISBN("bookISBN_to_ID");
+    block_list<bookstr, ISBNstr, 1> Author("bookAuthor_to_ISBN");
+    block_list<bookstr, ISBNstr, 1> Key("bookKey_to_ISBN");
+    block_list<bookstr, ISBNstr, 1> Name("bookName_to_ISBN");
 }
 
 
@@ -379,11 +387,12 @@ enum operatorType {_Invalid, _quit,// 基础指令
 _su, _logout, _register, _passwd, _useradd, _delete, // 账户系统指令
 _showbook, _buy, _select, _modify, _import, // 图书系统指令
 _showfinance, _log, _reportfinance, _reportemployee, // 日志系统指令
+_do_noting // 只有空格的指令，无输出内容
 };
 
 operatorType get_opt_type(vector<string> &orders) {
     // 基础指令 _Invalid, _exit
-    if (orders.size() == 0) return _Invalid;
+    if (orders.size() == 0) return _do_noting;
     operatorType type = _Invalid;
     if (orders[0] == "exit" || orders[0] == "quit") type = _quit;
     // 账户系统指令 _su, _logout, _register, _passwd, _useradd, _delete
@@ -423,6 +432,9 @@ void operation(Loginstack &LoginStack, string &optstr) {
     vector<string> orders = split_string(optstr);
     operatorType type = get_opt_type(orders);
     switch (type) {
+    case _do_noting:
+        //do noting
+        break;
     case _quit:
         quit(LoginStack, orders);
         break;

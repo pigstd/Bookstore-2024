@@ -4,6 +4,7 @@
 #include "mystr.hpp"
 #include "database.hpp"
 #include "MemoryRiver.hpp"
+#include "user.hpp"
 #include <string>
 #include <vector>
 #include <map>
@@ -24,9 +25,6 @@ using std::cin;
 bool isvalidISBN(char ch) {return std::isprint(ch);}
 // bookname, bookAuthor,keyword 要求：可见，不是双引号
 bool isvalidbookname(char ch) {return isvalidISBN(ch) && ch != '"';}
-
-// 是否是数字
-bool isnum(char ch) {return ch <= '9' && ch >= '0';}
 
 // 将 string（两位小数） 转为 double，若不是实数或不满足条件则抛出异常
 // 一定是正数，若不是则抛出异常
@@ -69,7 +67,7 @@ vector<string> getkey(const string& keyword) {
 // 将 string s 分为前 num 位和后面的部分
 pair<string, string> split_str_bynum(const string &s, int num) {
     string resL = "", resR = "";
-    for (int i = 0; i < s.size(); i++)
+    for (int i = 0; i < (int)s.size(); i++)
         if (i < num) resL += s[i];
         else resR += s[i];
     return {resL, resR};
@@ -135,7 +133,7 @@ void Book::show() const {
     std::fixed << std::setprecision(2) << bookPrice << '\t' << bookRemain << '\n';
 }
 
-void Book::bookadd_database(int type = 1) {
+void Book::bookadd_database(int type) {
     // 键值数据库 bookISBN_to_ID
     block_list<ISBNstr, int, 0> ISBN("bookISBN_to_ID");
     if (type == 1) ISBN.insert(bookISBN, BookID);
@@ -216,11 +214,11 @@ string Book::checkupdkey(const string &newkey) {
     return sKey;
 }
 string Book::checkupdprice(const string &newprice) {
-    // -pirce=
+    // -price=
     if (newprice.size() <= 7) throw Invalid();
     auto [sL, sPirce] = split_str_bynum(newprice, 7);
-    if (sL != "-pirce") throw Invalid();
-    double price = string_to_double(sPirce);
+    if (sL != "-price=") throw Invalid();
+    string_to_double(sPirce);
     return sPirce;
 }
 void Book::updauthor(const string &newAuthor) {
