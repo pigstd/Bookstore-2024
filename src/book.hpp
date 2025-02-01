@@ -26,24 +26,35 @@ bool isvalidISBN(char ch) {return std::isprint(ch);}
 // bookname, bookAuthor,keyword 要求：可见，不是双引号
 bool isvalidbookname(char ch) {return isvalidISBN(ch) && ch != '"';}
 
-// 将 string（两位小数） 转为 double，若不是实数或不满足条件则抛出异常
+// 将 string 转为 正整数，不是则抛出异常
+int string_to_Zint(const string &s);
+
+// 将 string（最多两位小数） 转为 double，若不是实数或不满足条件则抛出异常
 // 一定是正数，若不是则抛出异常
 double string_to_double(const string &s) {
-    if (s.size() < 4) throw Invalid();
     int len = s.size();
+    if (len == 0 || len > 13) throw Invalid();
+    if (!isnum(s[0]) || s[0] == '0') throw Invalid();
+    int pos = -1; // pos : 小数点的位置
     for (int i = 0; i < len; i++)
-        if (i == len - 3) {if (s[i] != '.') throw Invalid();}
-        else {if (!isnum(s[i])) throw Invalid();}
+        if (s[i] == '.') {
+            if (pos != -1) throw Invalid();
+            pos = i;
+        }
+        else if (!isnum(s[i])) throw Invalid();
+    if (pos == -1) // 是整数
+        return string_to_Zint(s);
+    if (pos != len - 2 && pos != len - 3) throw Invalid();
     double res = 0;
-    for (int i = 0; i < len - 3; i++)
+    for (int i = 0; i < pos; i++)
         res = res * 10 + s[i] - '0';
-    res = res + 0.1 * (s[len - 2] - '0') + 0.01 * (s[len - 1] - '0');
-    // 若是 0 抛出异常
-    if (res < 0.0001) throw Invalid();
+    double d = 1;
+    for (int i = pos + 1; i < len; i++)
+        d *= 0.1, res += d * (s[i] - '0');
+    if (res < 0.001) throw Invalid();// 如果是 0 就不行
     return res;
 }
 
-// 将 string 转为 正整数，不是则抛出异常
 int string_to_Zint(const string &s) {
     int num = 0;
     for (char ch : s) {
