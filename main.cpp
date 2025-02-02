@@ -3,10 +3,9 @@ using namespace std;
 
 int main() {
     init();
-    User nowuser;
-    nowuser.useradd();
-    //登录栈，分别是用户以及选择的书的 id
-    Loginstack LoginStack; LoginStack.push_back({nowuser.getID_int(), -1});
+    // 登录栈，分别是用户以及选择的书的 id
+    // 4 是游客的 id
+    Loginstack LoginStack; LoginStack.push_back({4, -1});
     string optstr;
     while(getline(cin, optstr)) {
         try {

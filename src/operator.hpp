@@ -366,12 +366,17 @@ void init() {
     需要检查是否是第一次启动，通过检查文件是否存在即可
     */
     if (std::filesystem::exists("Users")) return;
+    cerr << "start init!\n";
     /*
     User 的初始化：Users, UserID_to_int
     */
     MemoryRiver<User, 0> fileuser;
     fileuser.initialise("Users", 0, 1);
     block_list<userstr, int, 1> databaseuser("UserID_to_int");
+    // 添加进游客 
+    User nowuser;
+    nowuser.useradd();
+    assert(nowuser.getID_int() == 4);
     // 注册超级管理员 root
     User root("root", "sjtu", "7", "superadmin");
     root.useradd();
