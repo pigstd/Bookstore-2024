@@ -235,6 +235,8 @@ string Book::checkupdkey(const string &newkey) {
     bookstr Key(sKey, isvalidbookname);
     auto keys = getkey(sKey);
     map<string, bool> is_used;
+    // 关键词的内容不能为空，长度至少为 1
+    is_used[""] = 1;
     for (auto keyword : keys)
         if (is_used[keyword]) throw Invalid();
         else is_used[keyword] = 1;

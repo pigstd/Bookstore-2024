@@ -329,7 +329,7 @@ void reportemployee(Loginstack &LoginStack, vector<string> &orders);
 void showfinance(Loginstack &LoginStack, vector<string> &orders) {
     check_Privilege(LoginStack, owner);
     if (orders.size() > 3 || orders.size() < 2) throw Invalid();
-    double in = 0, out = 0;
+    ld in = 0, out = 0;
     function<void(const SaleInfo &)> addsaleinfo = 
     [&in, &out](const SaleInfo &info) -> void {
         if (info.querytype() == _buyin)
