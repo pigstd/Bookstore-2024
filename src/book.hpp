@@ -44,7 +44,6 @@ int string_to_N(const string &s) {
 double string_to_double(const string &s, int tp = 0) {
     int len = s.size();
     if (len == 0 || len > 13) throw Invalid();
-    if (len != 1 && s[0] == '0') throw Invalid();
     int pos = -1; // pos : 小数点的位置
     for (int i = 0; i < len; i++)
         if (s[i] == '.') {
