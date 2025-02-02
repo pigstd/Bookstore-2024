@@ -78,6 +78,8 @@ public:
     void Loginupd(int x);
     // 获得 ID
     int getID_int() const {return UserID_int;}
+    // 获得名字
+    userstr getname() const {return Username;}
     // 输出账户信息 用于调试
     void print() const {
         cout << UserID_int << ' ' << LoginTime << ' ' <<
@@ -118,6 +120,24 @@ void User::changepassword(string _currentpassword, string _newpassword) {
 void User::Loginupd(int x) {
     LoginTime += x;
     userupd();
+}
+
+// 找到 UserID 对应的 UserID_int，如果不存在就抛出异常
+int findUser(userstr UserID) {
+    block_list<userstr, int, 0> databaseuser("UserID_to_int");
+    auto all = databaseuser.find_with_vector(UserID);
+    if (all.size() == 0) throw Invalid();
+    // assert(all.size() == 1);//一个 UserID 只能对应一个 UserID_int
+    return all[0];
+}
+
+
+// 找到 UserID_int 对应的 UserID，如果不存在就抛出异常
+User findUser(int UserID_int) {
+    User res;
+    MemoryRiver<User, 0> fileuser("Users");
+    fileuser.read(res, UserID_int);
+    return res;
 }
 
 #endif //USER

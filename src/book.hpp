@@ -136,6 +136,8 @@ public:
     long long queryRemain() const {return bookRemain;}
     // 查询 bookID
     int querybookID() const {return BookID;}
+    // 查询书本名字
+    bookstr queryname() const {return bookname;}
     double queryPrice() const {return bookPrice;}
 };
 
@@ -249,5 +251,32 @@ void Book::updISBN(const string &newISBN) {
     bookISBN = newISBN;
 }
 
+// 输出 BookID 对应的书本的信息
+void show_with_ID(const int &BookID) {
+    MemoryRiver<Book, 0> filebook("Books");
+    Book book; filebook.read(book, BookID);
+    book.show();
+}
+// 输出 BookISBN 对应的书本的信息，若不存在输出空行
+void show_with_ISBN(const ISBNstr &BookISBN) {
+    block_list<ISBNstr, int, 0> ISBN("bookISBN_to_ID");
+    auto ID = ISBN.find_with_vector(BookISBN);
+    if (ID.size() == 0) cout << '\n';
+    else show_with_ID(ID[0]);
+}
+// 返回 BookID 对应的书，若 ID 是 -1 则抛出异常
+Book find_with_BookID(const int &BookID) {
+    if (BookID == -1) throw Invalid();
+    MemoryRiver<Book, 0> filebook("Books");
+    Book book; filebook.read(book, BookID);
+    return book;
+}
+// 返回 BookISBN 对应的 BookID，若不存在返回 -1
+int find_with_ISBN(const string &BookISBN) {
+    block_list<ISBNstr, int, 0> ISBN("bookISBN_to_ID");
+    auto ID = ISBN.find_with_vector(BookISBN);
+    if (ID.size() == 0) return -1;
+    else return ID[0];
+}
 
 #endif //BOOK

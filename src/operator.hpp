@@ -11,6 +11,7 @@
 #include "Exception.hpp"
 #include <string>
 #include <vector>
+#include <iostream>
 
 using std::pair;
 using std::string;
@@ -18,6 +19,8 @@ using std::vector;
 using std::map;
 using std::cout;
 using std::cin;
+using std::fixed;
+using std::setprecision;
 
 struct User_login {
     int user, select;
@@ -52,6 +55,16 @@ vector<string> split_string(string s) {
 // 进行操作
 void operation(Loginstack &LoginStack, string &oprstr);
 
+// 将 string 转为非负整数（int），不是则抛出异常
+int string_to_N(const string &s) {
+    int num = 0;
+    for (char ch : s) {
+        if (isnum(ch)) num = num * 10 + ch - '0';
+        else throw Invalid();
+    }
+    return num;
+}
+
 /*
 # 帐户系统指令
 su [UserID] ([Password])?
@@ -61,24 +74,6 @@ passwd [UserID] ([CurrentPassword])? [NewPassword]
 useradd [UserID] [Password] [Privilege] [Username]
 delete [UserID]
 */
-
-// 找到 UserID 对应的 UserID_int，如果不存在就抛出异常
-int findUser(userstr UserID) {
-    block_list<userstr, int, 0> databaseuser("UserID_to_int");
-    vector<int> all = databaseuser.find_with_vector(UserID);
-    if (all.size() == 0) throw Invalid();
-    // assert(all.size() == 1);//一个 UserID 只能对应一个 UserID_int
-    return all[0];
-}
-
-
-// 找到 UserID_int 对应的 UserID，如果不存在就抛出异常
-User findUser(int UserID_int) {
-    User res;
-    MemoryRiver<User, 0> fileuser("Users");
-    fileuser.read(res, UserID_int);
-    return res;
-}
 
 // 检验当前登录栈的权限是否 >= privilege，若不满足则抛出异常
 void check_Privilege(Loginstack &LoginStack, usertype privilege) {
@@ -172,34 +167,6 @@ void modify(Loginstack &LoginStack, vector<string> &orders);
 // import 进货
 void import(Loginstack &LoginStack, vector<string> &orders);
 
-// 输出 BookID 对应的书本的信息
-void show_with_ID(const int &BookID) {
-    MemoryRiver<Book, 0> filebook("Books");
-    Book book; filebook.read(book, BookID);
-    book.show();
-}
-// 输出 BookISBN 对应的书本的信息，若不存在输出空行
-void show_with_ISBN(const ISBNstr &BookISBN) {
-    block_list<ISBNstr, int, 0> ISBN("bookISBN_to_ID");
-    auto ID = ISBN.find_with_vector(BookISBN);
-    if (ID.size() == 0) cout << '\n';
-    else show_with_ID(ID[0]);
-}
-// 返回 BookID 对应的书，若 ID 是 -1 则抛出异常
-Book find_with_BookID(const int &BookID) {
-    if (BookID == -1) throw Invalid();
-    MemoryRiver<Book, 0> filebook("Books");
-    Book book; filebook.read(book, BookID);
-    return book;
-}
-// 返回 BookISBN 对应的 BookID，若不存在返回 -1
-int find_with_ISBN(const string &BookISBN) {
-    block_list<ISBNstr, int, 0> ISBN("bookISBN_to_ID");
-    auto ID = ISBN.find_with_vector(BookISBN);
-    if (ID.size() == 0) return -1;
-    else return ID[0];
-}
-
 void showbook(Loginstack &LoginStack, vector<string> &orders) {
     check_Privilege(LoginStack, customer);
     // show all
@@ -249,18 +216,16 @@ void showbook(Loginstack &LoginStack, vector<string> &orders) {
 void buy(Loginstack &LoginStack, vector<string> &orders) {
     check_Privilege(LoginStack, customer);
     if (orders.size() != 3) throw Invalid();
-    Book book = find_with_BookID(find_with_ISBN(orders[1]));
+    int BookID = find_with_ISBN(orders[1]);
+    Book book = find_with_BookID(BookID);
     int buynum = string_to_Zint(orders[2]);
     if (book.queryRemain() < buynum) throw Invalid();
     book.updremain(-buynum);
     double buysum = buynum * book.queryPrice();
-    cerr << buynum << ' ' << book.queryPrice() << '\n';
     cout << std::fixed << std::setprecision(2) << buysum << '\n';
-    // !!!
-    // to be done:
-    // 需要把价格的信息加入销售信息
-    // 等待 Info.hpp 写完后完成
-
+    // 加入信息
+    SaleInfo newinfo(LoginStack.back().user, BookID, _sale, buynum, buysum);
+    newinfo.addInfo();
 }
 
 void select(Loginstack &LoginStack, vector<string> &orders) {
@@ -349,12 +314,51 @@ void import(Loginstack &LoginStack, vector<string> &orders) {
     int Quantity = string_to_Zint(orders[1]);
     double TotalCost = string_to_double(orders[2]);
     book.updremain(+Quantity);
-    // !!!
-    // to be done:
-    // 需要把交易额度的信息加入销售信息
-    // 等待 Info.hpp 写完后完成
-
+    // 加入信息
+    SaleInfo newinfo(LoginStack.back().user, BookID, _buyin, Quantity, TotalCost);
+    newinfo.addInfo();
 }
+
+/*
+# 日志系统指令
+show finance ([Count])?
+log
+report finance
+report employee
+*/
+
+// 财务记录查询
+void showfinance(Loginstack &LoginStack, vector<string> &orders);
+// 生成日志
+void log(Loginstack &LoginStack, vector<string> &orders);
+// 财务记录报告
+void reportfinance(Loginstack &LoginStack, vector<string> &orders);
+// 员工工作情况报告
+void reportemployee(Loginstack &LoginStack, vector<string> &orders);
+
+void showfinance(Loginstack &LoginStack, vector<string> &orders) {
+    check_Privilege(LoginStack, owner);
+    if (orders.size() > 3 || orders.size() < 2) throw Invalid();
+    double in = 0, out = 0;
+    function<void(const SaleInfo &)> addsaleinfo = 
+    [&in, &out](const SaleInfo &info) -> void {
+        if (info.querytype() == _buyin)
+            out += info.queryMoney();
+        else in += info.queryMoney();
+    };
+    mystack<SaleInfo> filesaleInfo("saleInfo");
+    if (orders.size() == 2)
+        // 输出所有
+        filesaleInfo.func_with_all(addsaleinfo);
+    else {
+        int Count = string_to_N(orders[2]);
+        if (Count == 0) return cout << '\n', void();
+        if (Count > filesaleInfo.size()) throw Invalid();
+        filesaleInfo.func_with_topk(Count, addsaleinfo);
+    }
+    cout << fixed << setprecision(2) << "+ " << in << " - " << out << '\n';
+}
+
 
 //初始化
 void init() {
@@ -379,6 +383,8 @@ void init() {
     block_list<bookstr, ISBNstr, 1> Author("bookAuthor_to_ISBN");
     block_list<bookstr, ISBNstr, 1> Key("bookKey_to_ISBN");
     block_list<bookstr, ISBNstr, 1> Name("bookName_to_ISBN");
+    // saleInfo 的初始化
+    mystack<SaleInfo> filesaleInfo("saleInfo", 1);
 }
 
 
@@ -470,6 +476,9 @@ void operation(Loginstack &LoginStack, string &optstr) {
         break;
     case _import:
         import(LoginStack, orders);
+        break;
+    case _showfinance:
+        showfinance(LoginStack, orders);
         break;
     default:
         throw Invalid();
