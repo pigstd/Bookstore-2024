@@ -49,7 +49,7 @@ ld string_to_double(const string &s, int tp = 0) {
     int pos = len; // pos : 小数点的位置
     for (int i = 0; i < len; i++)
         if (s[i] == '.') {
-            if (pos != -1) throw Invalid();
+            if (pos != len) throw Invalid();
             pos = i;
         }
         else if (!isnum(s[i])) throw Invalid();
