@@ -55,16 +55,6 @@ vector<string> split_string(string s) {
 // 进行操作
 void operation(Loginstack &LoginStack, string &oprstr);
 
-// 将 string 转为非负整数（int），不是则抛出异常
-int string_to_N(const string &s) {
-    int num = 0;
-    for (char ch : s) {
-        if (isnum(ch)) num = num * 10 + ch - '0';
-        else throw Invalid();
-    }
-    return num;
-}
-
 /*
 # 帐户系统指令
 su [UserID] ([Password])?
@@ -366,7 +356,7 @@ void init() {
     需要检查是否是第一次启动，通过检查文件是否存在即可
     */
     if (std::filesystem::exists("Users")) return;
-    cerr << "start init!\n";
+    // cerr << "start init!\n";
     /*
     User 的初始化：Users, UserID_to_int
     */

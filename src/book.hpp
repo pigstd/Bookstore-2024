@@ -29,12 +29,22 @@ bool isvalidbookname(char ch) {return isvalidISBN(ch) && ch != '"';}
 // 将 string 转为 正整数，不是则抛出异常
 int string_to_Zint(const string &s);
 
+// 将 string 转为非负整数（int），不是则抛出异常
+int string_to_N(const string &s) {
+    int num = 0;
+    for (char ch : s) {
+        if (isnum(ch)) num = num * 10 + ch - '0';
+        else throw Invalid();
+    }
+    return num;
+}
+
 // 将 string（最多两位小数） 转为 double，若不是实数或不满足条件则抛出异常
-// 一定是正数，若不是则抛出异常
-double string_to_double(const string &s) {
+// 若 tp = 1，可以是 0， 否则不能是 0。 默认 tp = 0
+double string_to_double(const string &s, int tp = 0) {
     int len = s.size();
     if (len == 0 || len > 13) throw Invalid();
-    if (!isnum(s[0]) || s[0] == '0') throw Invalid();
+    if (len != 1 && s[0] == '0') throw Invalid();
     int pos = -1; // pos : 小数点的位置
     for (int i = 0; i < len; i++)
         if (s[i] == '.') {
@@ -42,8 +52,11 @@ double string_to_double(const string &s) {
             pos = i;
         }
         else if (!isnum(s[i])) throw Invalid();
-    if (pos == -1) // 是整数
-        return string_to_Zint(s);
+    if (pos == -1) {
+        if (tp)
+            return string_to_N(s);
+        else return string_to_Zint(s);
+    }
     if (pos != len - 2 && pos != len - 3) throw Invalid();
     double res = 0;
     for (int i = 0; i < pos; i++)
@@ -51,7 +64,7 @@ double string_to_double(const string &s) {
     double d = 1;
     for (int i = pos + 1; i < len; i++)
         d *= 0.1, res += d * (s[i] - '0');
-    if (res < 0.001) throw Invalid();// 如果是 0 就不行
+    if (res < 0.001 && tp == 0) throw Invalid();// 如果是 0 就不行
     return res;
 }
 
@@ -231,7 +244,7 @@ string Book::checkupdprice(const string &newprice) {
     if (newprice.size() <= 7) throw Invalid();
     auto [sL, sPirce] = split_str_bynum(newprice, 7);
     if (sL != "-price=") throw Invalid();
-    string_to_double(sPirce);
+    string_to_double(sPirce, 1);
     return sPirce;
 }
 void Book::updauthor(const string &newAuthor) {
@@ -241,7 +254,7 @@ void Book::updname(const string &newname) {
     bookname = newname;
 }
 void Book::updprice(const string &newprice) {
-    double _newprice = string_to_double(newprice);
+    double _newprice = string_to_double(newprice, 1);
     bookPrice = _newprice;
 }
 void Book::updkey(const string &newkey) {
