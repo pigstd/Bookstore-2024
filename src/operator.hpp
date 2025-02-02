@@ -364,9 +364,8 @@ void showfinance(Loginstack &LoginStack, vector<string> &orders) {
 void init() {
     /*
     需要检查是否是第一次启动，通过检查文件是否存在即可
-    到最后再加上这个功能吧，调试的时候可以去掉，毕竟比较麻烦
     */
-
+    if (std::filesystem::exists("Users")) return;
     /*
     User 的初始化：Users, UserID_to_int
     */
