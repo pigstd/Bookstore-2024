@@ -211,7 +211,7 @@ void buy(Loginstack &LoginStack, vector<string> &orders) {
     int buynum = string_to_Zint(orders[2]);
     if (book.queryRemain() < buynum) throw Invalid();
     book.updremain(-buynum);
-    double buysum = buynum * book.queryPrice();
+    ld buysum = buynum * book.queryPrice();
     cout << std::fixed << std::setprecision(2) << buysum << '\n';
     // 加入信息
     SaleInfo newinfo(LoginStack.back().user, BookID, _sale, buynum, buysum);
@@ -302,7 +302,7 @@ void import(Loginstack &LoginStack, vector<string> &orders) {
     if (BookID == -1) throw Invalid();
     Book book = find_with_BookID(BookID);
     int Quantity = string_to_Zint(orders[1]);
-    double TotalCost = string_to_double(orders[2]);
+    ld TotalCost = string_to_double(orders[2]);
     book.updremain(+Quantity);
     // 加入信息
     SaleInfo newinfo(LoginStack.back().user, BookID, _buyin, Quantity, TotalCost);

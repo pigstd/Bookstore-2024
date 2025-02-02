@@ -18,18 +18,18 @@ private:
     int SaleID, userID, bookID;
     sale_type SaleType;
     int SaleNum;
-    double SaleMoney;
+    ld SaleMoney;
 public:
     // 空的构造函数
     SaleInfo();
     // 构造函数
-    SaleInfo(int _userID, int _bookID, sale_type _Saletype, int _SaleNum, double _SaleMoney);
+    SaleInfo(int _userID, int _bookID, sale_type _Saletype, int _SaleNum, ld _SaleMoney);
     // 加入数据库 saleInfo
     void addInfo();
     // 输出销售信息 谁买了/卖了什么花了多少钱
     void printInfo() const;
     // 查询金额
-    double queryMoney() const;
+    ld queryMoney() const;
     // 查询类型
     sale_type querytype() const;
 };
@@ -52,11 +52,11 @@ void SaleInfo::printInfo() const {
         user.getname() << " 买了 " << SaleNum << " 本名字为 " << book.queryname() << " 的书，赚了 " << SaleMoney << "元\n";
 }
 
-double SaleInfo::queryMoney() const {return SaleMoney;}
+ld SaleInfo::queryMoney() const {return SaleMoney;}
 sale_type SaleInfo::querytype() const {return SaleType;}
 
 SaleInfo::SaleInfo() {};
-SaleInfo::SaleInfo(int _userID, int _bookID, sale_type _Saletype, int _SaleNum, double _SaleMoney) :
+SaleInfo::SaleInfo(int _userID, int _bookID, sale_type _Saletype, int _SaleNum, ld _SaleMoney) :
     SaleID(-1), userID(_userID), bookID(_bookID), SaleType(_Saletype), SaleNum(_SaleNum), SaleMoney(_SaleMoney) {}
 
 #endif //INFO

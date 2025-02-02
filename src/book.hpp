@@ -10,6 +10,8 @@
 #include <map>
 #include <ctype.h>
 
+#define ld long double
+
 using std::string;
 using std::vector;
 using std::map;
@@ -41,7 +43,7 @@ int string_to_N(const string &s) {
 
 // 将 string（最多两位小数） 转为 double，若不是实数或不满足条件则抛出异常
 // 若 tp = 1，可以是 0， 否则不能是 0。 默认 tp = 0
-double string_to_double(const string &s, int tp = 0) {
+ld string_to_double(const string &s, int tp = 0) {
     int len = s.size();
     if (len == 0 || len > 13) throw Invalid();
     int pos = -1; // pos : 小数点的位置
@@ -57,10 +59,10 @@ double string_to_double(const string &s, int tp = 0) {
         else return string_to_Zint(s);
     }
     if (pos != len - 2 && pos != len - 3) throw Invalid();
-    double res = 0;
+    ld res = 0;
     for (int i = 0; i < pos; i++)
         res = res * 10 + s[i] - '0';
-    double d = 1;
+    ld d = 1;
     for (int i = pos + 1; i < len; i++)
         d *= 0.1, res += d * (s[i] - '0');
     if (res < 0.001 && tp == 0) throw Invalid();// 如果是 0 就不行
@@ -102,7 +104,7 @@ private:
     ISBNstr bookISBN;
     bookstr bookname, bookAuthor, bookKeyword;
     long long bookRemain;
-    double bookPrice;
+    ld bookPrice;
 public:
     // 默认构造函数
     Book() {}
@@ -150,7 +152,7 @@ public:
     int querybookID() const {return BookID;}
     // 查询书本名字
     bookstr queryname() const {return bookname;}
-    double queryPrice() const {return bookPrice;}
+    ld queryPrice() const {return bookPrice;}
 };
 
 void Book::show() const {
@@ -253,7 +255,7 @@ void Book::updname(const string &newname) {
     bookname = newname;
 }
 void Book::updprice(const string &newprice) {
-    double _newprice = string_to_double(newprice, 1);
+    ld _newprice = string_to_double(newprice, 1);
     bookPrice = _newprice;
 }
 void Book::updkey(const string &newkey) {
