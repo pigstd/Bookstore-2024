@@ -46,19 +46,14 @@ int string_to_N(const string &s) {
 ld string_to_double(const string &s, int tp = 0) {
     int len = s.size();
     if (len == 0 || len > 13) throw Invalid();
-    int pos = -1; // pos : 小数点的位置
+    int pos = len; // pos : 小数点的位置
     for (int i = 0; i < len; i++)
         if (s[i] == '.') {
             if (pos != -1) throw Invalid();
             pos = i;
         }
         else if (!isnum(s[i])) throw Invalid();
-    if (pos == -1) {
-        if (tp)
-            return string_to_N(s);
-        else return string_to_Zint(s);
-    }
-    if (pos != len - 2 && pos != len - 3) throw Invalid();
+    if (pos != len - 2 && pos != len - 3 && pos != len) throw Invalid();
     ld res = 0;
     for (int i = 0; i < pos; i++)
         res = res * 10 + s[i] - '0';
