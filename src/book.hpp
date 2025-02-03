@@ -29,13 +29,38 @@ bool isvalidISBN(char ch) {return std::isprint(ch);}
 bool isvalidbookname(char ch) {return isvalidISBN(ch) && ch != '"';}
 
 // 将 string 转为 正整数，不是则抛出异常
-int string_to_Zint(const string &s);
+int string_to_Zint(const string &s) {
+    if (s.size() == 0 || s.size() > 10) throw Invalid();
+    // 前导零
+    if (s[0] == '0') throw Invalid();
+    int num = 0;
+    for (char ch : s) {
+        int d = ch - '0';
+        if (isnum(ch)) {
+            // 判断是否超过 INTMAX
+            if ((INT32_MAX - d) / 10 >= num)
+                num = num * 10 + d;
+            else throw Invalid();
+        }
+        else throw Invalid();
+    }
+    return num;
+}
 
 // 将 string 转为非负整数（int），不是则抛出异常
 int string_to_N(const string &s) {
+    if (s.size() == 0 || s.size() > 10) throw Invalid();
+    // 前导零
+    if (s.size() != 1 && s[0] == '0') throw Invalid();
     int num = 0;
     for (char ch : s) {
-        if (isnum(ch)) num = num * 10 + ch - '0';
+        int d = ch - '0';
+        if (isnum(ch)) {
+            // 判断是否超过 INTMAX
+            if ((INT32_MAX - d) / 10 >= num)
+                num = num * 10 + d;
+            else throw Invalid();
+        }
         else throw Invalid();
     }
     return num;
@@ -54,6 +79,8 @@ ld string_to_double(const string &s, int tp = 0) {
         }
         else if (!isnum(s[i])) throw Invalid();
     if (pos != len - 2 && pos != len - 3 && pos != len) throw Invalid();
+    // 判断前导零
+    if (pos != 1 && s[0] == '0') throw Invalid();
     ld res = 0;
     for (int i = 0; i < pos; i++)
         res = res * 10 + s[i] - '0';
@@ -62,16 +89,6 @@ ld string_to_double(const string &s, int tp = 0) {
         d *= 0.1, res += d * (s[i] - '0');
     if (res < 0.001 && tp == 0) throw Invalid();// 如果是 0 就不行
     return res;
-}
-
-int string_to_Zint(const string &s) {
-    int num = 0;
-    for (char ch : s) {
-        if (isnum(ch)) num = num * 10 + ch - '0';
-        else throw Invalid();
-    }
-    if (num == 0) throw Invalid();
-    return num;
 }
 
 // 将 keyword 按照 | 分割成若干 key
