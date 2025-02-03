@@ -349,6 +349,14 @@ void showfinance(Loginstack &LoginStack, vector<string> &orders) {
     cout << fixed << setprecision(2) << "+ " << in << " - " << out << '\n';
 }
 
+void reportfinance(Loginstack &LoginStack, vector<string> &orders) {
+    check_Privilege(LoginStack, owner);
+    if (orders.size() != 2) throw Invalid();
+    function<void(const SaleInfo &)> showinfo =
+    [](const SaleInfo &info) -> void {info.printInfo();};
+    mystack<SaleInfo> filesaleInfo("saleInfo");
+    filesaleInfo.func_with_all(showinfo);
+}
 
 //初始化
 void init() {
@@ -379,45 +387,6 @@ void init() {
     block_list<bookstr, ISBNstr, 1> Name("bookName_to_ISBN");
     // saleInfo 的初始化
     mystack<SaleInfo> filesaleInfo("saleInfo", 1);
-}
-
-
-// 使用名字前面带下划线来区分
-enum operatorType {_Invalid, _quit,// 基础指令
-_su, _logout, _register, _passwd, _useradd, _delete, // 账户系统指令
-_showbook, _buy, _select, _modify, _import, // 图书系统指令
-_showfinance, _log, _reportfinance, _reportemployee, // 日志系统指令
-_do_noting // 只有空格的指令，无输出内容
-};
-
-operatorType get_opt_type(vector<string> &orders) {
-    // 基础指令 _Invalid, _exit
-    if (orders.size() == 0) return _do_noting;
-    operatorType type = _Invalid;
-    if (orders[0] == "exit" || orders[0] == "quit") type = _quit;
-    // 账户系统指令 _su, _logout, _register, _passwd, _useradd, _delete
-    if (orders[0] == "su") type = _su;
-    if (orders[0] == "logout") type = _logout;
-    if (orders[0] == "register") type = _register;
-    if (orders[0] == "passwd") type = _passwd;
-    if (orders[0] == "useradd") type = _useradd;
-    if (orders[0] == "delete") type = _delete;
-    // 图书系统指令 _showbook, _buy, _select, _modify, _import 
-    if (orders[0] == "show") {
-        if (orders.size() >= 2 && orders[1] == "finance") type = _showfinance;
-        else type = _showbook;
-    }
-    if (orders[0] == "buy") type = _buy;
-    if (orders[0] == "select") type = _select;
-    if (orders[0] == "modify") type = _modify;
-    if (orders[0] == "import") type = _import;
-    // 日志系统指令 _showfinance, _log, _reportfinance, _reportemployee
-    if (orders[0] == "log") type = _log;
-    if (orders[0] == "report" && orders.size() >= 2) {
-        if (orders[1] == "finance") type = _reportfinance;
-        if (orders[1] == "employee") type = _reportemployee;
-    }
-    return type;
 }
 
 void quit(Loginstack &LoginStack, vector<string> &orders) {
@@ -473,6 +442,9 @@ void operation(Loginstack &LoginStack, string &optstr) {
         break;
     case _showfinance:
         showfinance(LoginStack, orders);
+        break;
+    case _reportfinance:
+        reportfinance(LoginStack, orders);
         break;
     default:
         throw Invalid();

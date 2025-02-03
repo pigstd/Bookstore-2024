@@ -5,10 +5,8 @@ using namespace std;
 int main() {
     cerr << "start test op\n";
     init();
-    User nowuser;
-    nowuser.useradd();
     //登录栈，分别是用户以及选择的书的 id
-    Loginstack LoginStack; LoginStack.push_back({nowuser.getID_int(), -1});
+    Loginstack LoginStack; LoginStack.push_back({4, -1});
     string optstr;
     while(getline(cin, optstr)) {
         try {
