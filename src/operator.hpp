@@ -397,6 +397,37 @@ void quit(Loginstack &LoginStack, vector<string> &orders) {
     exit(0);
 }
 
+
+operatorType get_opt_type(vector<string> &orders) {
+    // 基础指令 _Invalid, _exit
+    if (orders.size() == 0) return _do_noting;
+    operatorType type = _Invalid;
+    if (orders[0] == "exit" || orders[0] == "quit") type = _quit;
+    // 账户系统指令 _su, _logout, _register, _passwd, _useradd, _delete
+    if (orders[0] == "su") type = _su;
+    if (orders[0] == "logout") type = _logout;
+    if (orders[0] == "register") type = _register;
+    if (orders[0] == "passwd") type = _passwd;
+    if (orders[0] == "useradd") type = _useradd;
+    if (orders[0] == "delete") type = _delete;
+    // 图书系统指令 _showbook, _buy, _select, _modify, _import 
+    if (orders[0] == "show") {
+        if (orders.size() >= 2 && orders[1] == "finance") type = _showfinance;
+        else type = _showbook;
+    }
+    if (orders[0] == "buy") type = _buy;
+    if (orders[0] == "select") type = _select;
+    if (orders[0] == "modify") type = _modify;
+    if (orders[0] == "import") type = _import;
+    // 日志系统指令 _showfinance, _log, _reportfinance, _reportemployee
+    if (orders[0] == "log") type = _log;
+    if (orders[0] == "report" && orders.size() >= 2) {
+        if (orders[1] == "finance") type = _reportfinance;
+        if (orders[1] == "employee") type = _reportemployee;
+    }
+    return type;
+}
+
 void operation(Loginstack &LoginStack, string &optstr) {
     vector<string> orders = split_string(optstr);
     operatorType type = get_opt_type(orders);
