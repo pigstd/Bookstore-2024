@@ -132,7 +132,7 @@ int findUser(userstr UserID) {
 }
 
 
-// 找到 UserID_int 对应的 UserID，如果不存在就抛出异常
+// 找到 UserID_int 对应的 User，如果不存在就抛出异常
 User findUser(int UserID_int) {
     User res;
     MemoryRiver<User, 0> fileuser("Users");

@@ -85,13 +85,18 @@ void su(Loginstack &LoginStack, vector<string> orders) {
     // 可以登录
     su_user.Loginupd(+1);
     LoginStack.push_back({su_user.getID_int(), -1});
+    logInfo sulog(_su, su_user.gettype(), su_user.getname());
+    sulog.add();
 }
 // logout 登出 传入当前的用户以及指令
 void logout(Loginstack &LoginStack, vector<string> orders) {
     check_Privilege(LoginStack, customer);
     if (orders.size() != 1) throw Invalid();
     if (LoginStack.size() == 1) throw Invalid();
-    findUser(LoginStack.back().user).Loginupd(-1);
+    User logoutuser = findUser(LoginStack.back().user);
+    logoutuser.Loginupd(-1);
+    logInfo logoutlog(_logout, logoutuser.gettype(), logoutuser.getname());
+    logoutlog.add();
     LoginStack.pop_back();
 }
 // register 注册 传入当前的用户以及指令
@@ -99,6 +104,10 @@ void registeruser(Loginstack &LoginStack, vector<string> orders) {
     if (orders.size() != 4) throw Invalid();
     User newuser(orders[1], orders[2], orders[3]);
     newuser.useradd();
+    User nowuser = findUser(LoginStack.back().user);
+    string info = "userID = " + orders[1] + ", password = " + orders[2];
+    logInfo registerlog(_register, nowuser.gettype(), nowuser.getname(), newuser.getname(), info);
+    registerlog.add();
 }
 // passwd 修改密码 传入当前的用户以及指令
 void passwd(Loginstack &LoginStack, vector<string> orders) {
@@ -107,20 +116,31 @@ void passwd(Loginstack &LoginStack, vector<string> orders) {
     userstr UserID(orders[1], isvalidname);
     int UserID_int = findUser(UserID);
     User upduser = findUser(UserID_int);
+    string info = "";
     if (orders.size() == 3) {
         check_Privilege(LoginStack, owner);
         upduser.changepassword(orders[2]);
+        info = orders[2];
     }
-    else
+    else {
         upduser.changepassword(orders[2], orders[3]);
+        info = orders[3];
+    }
+    User nowuser = findUser(LoginStack.back().user);
+    logInfo passwdlog(_passwd, nowuser.gettype(), nowuser.getname(), upduser.getname(), info);
+    passwdlog.add();
 }
 // useradd 添加用户 传入当前的用户以及指令
 void useradd(Loginstack &LoginStack, vector<string> orders) {
     check_Privilege(LoginStack, employee);
     if (orders.size() != 5) throw Invalid();
     User newuser(orders[1], orders[2], orders[3], orders[4]);
-    if (newuser.gettype() >= findUser(LoginStack.back().user).gettype()) throw Invalid();
+    User nowuser = findUser(LoginStack.back().user);
+    if (newuser.gettype() >= nowuser.gettype()) throw Invalid();
     newuser.useradd();
+    string info = "userID = " + orders[1] + ", password = " + orders[2] + ", Privilege = " + orders[3];
+    logInfo useraddlog(_useradd, nowuser.gettype(), nowuser.getname(), newuser.getname(), info);
+    useraddlog.add();
 }
 // delete 删除用户 传入当前的用户以及指令
 void deleteuser(Loginstack &LoginStack, vector<string> orders) {
@@ -131,6 +151,8 @@ void deleteuser(Loginstack &LoginStack, vector<string> orders) {
     int UserID_int = findUser(UserID);
     User deluser = findUser(UserID_int);
     if (deluser.isLogin()) throw Invalid();
+    logInfo deletelog(_delete, owner, deluser.getname());
+    deletelog.add();
     MemoryRiver<User, 0> fileuser("Users");
     fileuser.Delete(UserID_int);
     block_list<userstr, int, 0> databaseuser("UserID_to_int");
@@ -159,16 +181,20 @@ void import(Loginstack &LoginStack, vector<string> &orders);
 
 void showbook(Loginstack &LoginStack, vector<string> &orders) {
     check_Privilege(LoginStack, customer);
+    User nowuser = findUser(LoginStack.back().user);
     // show all
+    string info = "";
     if (orders.size() == 1) {
         // 键值数据库 bookISBN_to_ID
         block_list<ISBNstr, int, 0> ISBN("bookISBN_to_ID");
         if (ISBN.all_opt(show_with_ID) == 0)
             cout << '\n';// 无满足要求的图书时输出空行
+        logInfo showbooklog(_showbook, nowuser.gettype(), nowuser.getname(), info);
+        showbooklog.add();
         return;
     }
     if (orders.size() != 2) throw Invalid();
-    string order = orders[1];
+    string order = orders[1]; info = order;
     if (order.size() <= 2) throw Invalid();
     if (order[1] == 'I') {
         // -ISBN=
@@ -201,6 +227,8 @@ void showbook(Loginstack &LoginStack, vector<string> &orders) {
             cout << '\n';
     }
     else throw Invalid();
+    logInfo showbooklog(_showbook, nowuser.gettype(), nowuser.getname(), info);
+    showbooklog.add();
 }
 
 void buy(Loginstack &LoginStack, vector<string> &orders) {
@@ -216,6 +244,9 @@ void buy(Loginstack &LoginStack, vector<string> &orders) {
     // 加入信息
     SaleInfo newinfo(LoginStack.back().user, BookID, _sale, buynum, buysum);
     newinfo.addInfo();
+    User nowuser = findUser(LoginStack.back().user);
+    logInfo buylog(_buy, nowuser.gettype(), newinfo.queryID());
+    buylog.add();
 }
 
 void select(Loginstack &LoginStack, vector<string> &orders) {
@@ -228,6 +259,9 @@ void select(Loginstack &LoginStack, vector<string> &orders) {
         BookID = newbook.querybookID();
     }
     LoginStack.back().select = BookID;
+    User nowuser = findUser(LoginStack.back().user);
+    logInfo selectlog(_select, nowuser.gettype(), nowuser.getname(), ISBNstr(orders[1]));
+    selectlog.add();
 }
 
 void modify(Loginstack &LoginStack, vector<string> &orders) {
@@ -235,12 +269,15 @@ void modify(Loginstack &LoginStack, vector<string> &orders) {
     int BookID = LoginStack.back().select;
     if (BookID == -1) throw Invalid();
     Book upd_book = find_with_BookID(BookID);
+    User nowuser = findUser(LoginStack.back().user);
     enum modifyType {_ISBN = 0, _name, _author, _keyword, _price};
     int is_modified[] = {0, 0, 0, 0, 0};
     //first : 修改后的名字 second : 类型
     vector<pair<string, modifyType>> updinfo;
+    string info;
     for (int i = 1; i < (int)orders.size(); i++) {
         string order = orders[i];
+        info += order + " ";
         modifyType type;
         switch (order[1]) {
             case 'I':
@@ -293,6 +330,8 @@ void modify(Loginstack &LoginStack, vector<string> &orders) {
     }
     upd_book.bookadd_database(1);
     upd_book.bookupd();
+    logInfo modifylog(_modify, nowuser.gettype(), nowuser.getname(), upd_book.queryISBN(), info);
+    modifylog.add();
 }
 
 void import(Loginstack &LoginStack, vector<string> &orders) {
@@ -307,6 +346,9 @@ void import(Loginstack &LoginStack, vector<string> &orders) {
     // 加入信息
     SaleInfo newinfo(LoginStack.back().user, BookID, _buyin, Quantity, TotalCost);
     newinfo.addInfo();
+    User nowuser = findUser(LoginStack.back().user);
+    logInfo importlog(_import, nowuser.gettype(), newinfo.queryID());
+    importlog.add();
 }
 
 /*
@@ -330,13 +372,14 @@ void showfinance(Loginstack &LoginStack, vector<string> &orders) {
     check_Privilege(LoginStack, owner);
     if (orders.size() > 3 || orders.size() < 2) throw Invalid();
     ld in = 0, out = 0;
-    function<void(const SaleInfo &)> addsaleinfo = 
+    auto addsaleinfo = 
     [&in, &out](const SaleInfo &info) -> void {
         if (info.querytype() == _buyin)
             out += info.queryMoney();
         else in += info.queryMoney();
     };
     mystack<SaleInfo> filesaleInfo("saleInfo");
+    string info = "";
     if (orders.size() == 2)
         // 输出所有
         filesaleInfo.func_with_all(addsaleinfo);
@@ -345,17 +388,48 @@ void showfinance(Loginstack &LoginStack, vector<string> &orders) {
         if (Count == 0) return cout << '\n', void();
         if (Count > filesaleInfo.size()) throw Invalid();
         filesaleInfo.func_with_topk(Count, addsaleinfo);
+        info = orders[2];
     }
     cout << fixed << setprecision(2) << "+ " << in << " - " << out << '\n';
+    logInfo showfinancelog(_showfinance, info);
+    showfinancelog.add();
 }
 
 void reportfinance(Loginstack &LoginStack, vector<string> &orders) {
     check_Privilege(LoginStack, owner);
     if (orders.size() != 2) throw Invalid();
-    function<void(const SaleInfo &)> showinfo =
-    [](const SaleInfo &info) -> void {info.printInfo();};
+    auto showinfo =
+    [](const SaleInfo &info) -> void {
+        info.printInfo();
+    };
     mystack<SaleInfo> filesaleInfo("saleInfo");
     filesaleInfo.func_with_all(showinfo);
+    logInfo reportfinancelog(_reportfinance);
+    reportfinancelog.add();
+}
+
+void log(Loginstack &LoginStack, vector<string> &orders) {
+    check_Privilege(LoginStack, owner);
+    if (orders.size() != 1) throw Invalid();
+    mystack<logInfo> filelogInfo("logInfo");
+    auto show = [](const logInfo &info) -> void {
+        info.show();
+    };
+    filelogInfo.func_with_all(show);
+    logInfo loglog(_log);
+    loglog.add();
+}
+
+void reportemployee(Loginstack &LoginStack, vector<string> &orders) {
+    check_Privilege(LoginStack, owner);
+    if (orders.size() != 2) throw Invalid();
+    mystack<logInfo> filelogInfo("logInfo");
+    auto showemployee = [](const logInfo &info) -> void {
+        info.showemployee();
+    };
+    filelogInfo.func_with_all(showemployee);
+    logInfo reportemployeelog(_reportemployee);
+    reportemployeelog.add();
 }
 
 //初始化
@@ -387,13 +461,20 @@ void init() {
     block_list<bookstr, ISBNstr, 1> Name("bookName_to_ISBN");
     // saleInfo 的初始化
     mystack<SaleInfo> filesaleInfo("saleInfo", 1);
+    // logInfo 的初始化
+    mystack<logInfo> filelogInfo("logInfo", 1);
 }
 
 void quit(Loginstack &LoginStack, vector<string> &orders) {
     // cerr << "quit!\n";
     if (orders.size() != 1) throw Invalid();
     vector<string> logoutorders(1, "logout");
-    while(LoginStack.size() != 1) logout(LoginStack, logoutorders);
+    mystack<logInfo> filelogInfo("logInfo");
+    int cnt = 0;
+    while(LoginStack.size() != 1) logout(LoginStack, logoutorders), cnt++;
+    for (int i = 1; i <= cnt; i++)
+        filelogInfo.pop();
+    logInfo quitlog(_quit);
     exit(0);
 }
 
@@ -476,6 +557,12 @@ void operation(Loginstack &LoginStack, string &optstr) {
         break;
     case _reportfinance:
         reportfinance(LoginStack, orders);
+        break;
+    case _reportemployee:
+        reportemployee(LoginStack, orders);
+        break;
+    case _log:
+        log(LoginStack, orders);
         break;
     default:
         throw Invalid();

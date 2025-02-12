@@ -164,6 +164,9 @@ public:
     int querybookID() const {return BookID;}
     // 查询书本名字
     bookstr queryname() const {return bookname;}
+    //查询 ISBN
+    ISBNstr queryISBN() const {return bookISBN;}
+    // 查询价格
     ld queryPrice() const {return bookPrice;}
 };
 
